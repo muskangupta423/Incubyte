@@ -84,6 +84,40 @@ that must add up to the annual salary. Deductions stay out of scope (see decisio
 | Performance claims like "about a second" | Removed — a **measurement step** was added to the plan; numbers go in the performance doc |
 | Frontend `pages/` + `components/` | **Feature folders** (`employees`, `dashboard`, `compensation`, `csv`) |
 
-### 6. Coding
+### 6. Backend steps (1–6)
+
+Short prompts per step ("start", "commit") — the plan and `CLAUDE.md` carried the detail.
+My review questions changed the code along the way, for example:
+
+> Is job_title repeated in "Indexes on (country, job_title), department, job_title"?
+
+*Outcome:* AI verified with `EXPLAIN QUERY PLAN` that the separate `job_title` index is needed
+(a two-column index only helps when the search starts with its first column) and documented why.
+
+> We have not created UI yet, right? … OK, do BE first.
+
+*Outcome:* I chose backend-first over vertical slices, so the UI is built on a finished, tested API.
+
+### 7. UI theme
+
+> We can go with the company's theme. Check https://incubyte.co/ and use the theme used there.
+> If possible, give a toggle to switch between light and dark mode. Go with a clean, professional
+> HR-tool look: a light background, one accent colour and a clear table layout. Theme colours,
+> spacing, font sizes etc. should be defined once at a common place. Design it with responsiveness —
+> mobile, tablet and desktop.
+
+*Outcome:* AI read the site's design variables (`--e-global-color-primary: #014D43`, lime `#D3FE73`,
+mint `#EBFFF6`, navy `#060A1E`; fonts Fraunces + Inclusive Sans) and built `web/src/theme/tokens.ts`
+as the single source of design tokens, with a light/dark toggle. Only the palette and fonts are used —
+the app is ACME's product, so no Incubyte logo or name.
+
+> Active colour can be #d3fe73, hover a little lighter. Use #014d43 for main headings and the primary
+> CTA background with white text. Secondary CTA: #014d43 text on a white background.
+
+*Outcome:* colour tokens were renamed by purpose (`accent`, `heading`, `primary`, `secondaryText`) and
+updated in one file. AI flagged that teal text is unreadable on the dark navy background, so dark mode
+uses mint headings, lime secondary text and a slightly brighter teal for primary buttons.
+
+### 8. Frontend steps
 
 > *(to be added as we build)*

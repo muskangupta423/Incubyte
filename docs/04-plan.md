@@ -13,8 +13,8 @@ so the git history shows how the solution evolved.
 | 4 | Employees API: list (pagination, search, filters, sort) | API tests pass |
 | 5 | Employees API: create / update / delete with validation | API + unit tests pass |
 | 6 | Insights services & API: summary, by country, by job title, by department, distribution | Unit tests for stats math + API tests |
-| 7 | Web: theme tokens, core reusable components, app shell & routing, HTTP client | Component tests (keyboard, labels) pass |
-| 8 | Web: Employees page — table, search (debounced), filters, sort, pagination, all in the URL; loading / empty / error states | Component tests pass; works against local API |
+| 7 | Web: design tokens (Incubyte palette), light/dark mode, responsive app shell & routing, first reusable components | Routing, navigation and theme-toggle tests pass (incl. keyboard) |
+| 8 | Web: HTTP client + TanStack Query, Employees page — table, search (debounced), filters, sort, pagination, all in the URL; loading / empty / error states | Component tests pass; works against local API |
 | 9 | Web: add / edit / delete employee (React Hook Form + shared Zod schema) | Form validation tests pass |
 | 10 | Web: Dashboard — stat cards + Recharts charts + country / job-title drill-down | Renders with real data; tests for key states |
 | 11 | Performance check: time key API queries on the 10,000-employee DB, record results in [performance](05-performance.md) | Numbers measured, not guessed |

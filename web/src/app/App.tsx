@@ -1,7 +1,13 @@
+import { createBrowserRouter, RouterProvider } from 'react-router';
+import { AppProviders } from './AppProviders';
+import { appRoutes } from './routes';
+
+const router = createBrowserRouter(appRoutes);
+
 export function App() {
   return (
-    <main>
-      <h1>ACME Salary Management</h1>
-    </main>
+    <AppProviders>
+      <RouterProvider router={router} />
+    </AppProviders>
   );
 }
