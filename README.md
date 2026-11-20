@@ -3,7 +3,7 @@
 A web app for ACME's HR Manager to **manage salaries of 10,000 employees across countries**
 and **understand how the organization pays people** — replacing spreadsheets.
 
-**Live app:** _link added after the first deployment_
+**Live app:** https://incubyte-ydik.vercel.app
 
 ## Artifacts (read these first)
 

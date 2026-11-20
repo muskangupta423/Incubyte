@@ -34,7 +34,27 @@ The main rule: **send the browser only what it shows.**
 | Employee list, search + filter + sort | — | |
 | Insights summary (incl. median) | — | |
 | Insights by country / job title | — | |
-| Seed 10,000 employees | 0.06–0.08 s | Local SQLite file, laptop; 20 multi-row INSERTs in one transaction. Turso (network) to be measured at deploy. |
+| Seed 10,000 employees | 0.06–0.08 s | Local SQLite file, laptop; 20 multi-row INSERTs in one transaction. |
+
+### Live deployment (end to end, as a user feels it)
+
+Measured with `curl` against the live app (Vercel function in Washington, D.C. `iad1` + Turso in
+AWS us-east-1), **from India** — 6 requests per row, total time including the network:
+
+| Request | Time | Notes |
+|---------|------|-------|
+| `/api/health` (no query) | 0.44–0.50 s | The baseline: network round trip India ↔ US + function overhead |
+| Employee list, page 1 | 0.37–0.48 s | |
+| Search + country filter + salary sort | 0.33–0.43 s | |
+| Deep page (`page=400`) | 0.36–0.43 s | |
+| Insights summary (incl. median) | 0.39–0.50 s | |
+| Insights by country / department / job title | 0.39–0.57 s | |
+
+**What this shows:** every request costs about the same as the health check, so the time is
+mostly **distance**, not the queries. One request in 48 took **19.9 s**; it was not repeated and
+these measurements don't show why (likely a cold start meeting a slow network moment) — it is
+recorded rather than hidden. Deploying the function and database in a region near the users
+(e.g. Mumbai) would cut most of the remaining time.
 
 ## Known bottlenecks (and what we'd change at larger scale)
 
