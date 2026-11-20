@@ -11,6 +11,13 @@ export default tseslint.config(
   ...tseslint.configs.stylistic,
 
   {
+    rules: {
+      // Allow intentionally unused parameters when prefixed with _ (e.g. Express error handlers need 4 args).
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
+  },
+
+  {
     files: ['api/**/*.ts'],
     languageOptions: { globals: globals.node },
   },

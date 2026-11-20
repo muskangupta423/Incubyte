@@ -153,7 +153,19 @@ erDiagram
 | GET | `/api/employees/:id/components` | Salary breakdown of one employee |
 | PUT | `/api/employees/:id/components` | Replace the whole breakdown (validated: amounts > 0, unique names, sum = annual salary) |
 
-Errors use one consistent shape: `{ "error": { "message": "...", "details": [...] } }` with proper status codes (400, 404, 409, 500).
+Errors use one consistent shape, with proper status codes (400, 404, 409, 500):
+
+```json
+{ "error": { "message": "Some of the values you sent are not valid.",
+             "details": [{ "field": "pageSize", "message": "Too big: expected number to be <=100" }] } }
+```
+
+Unexpected errors are logged on the server; the client only gets a generic message (no stack traces or SQL).
+
+**List endpoint rules:** `pageSize` defaults to 25, max 100; `sortBy` must be one of `fullName`, `employeeCode`,
+`annualSalary`, `hireDate` (whitelist → column map, never raw input in SQL); ties are broken by `id` so pages are stable;
+search matches name, email or code (case-insensitive, `%` and `_` treated literally); count and page are fetched in one
+read batch (one round trip, consistent totals).
 
 ## 6. Tech stack
 

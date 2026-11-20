@@ -6,6 +6,6 @@ import { migrate } from './db/migrate';
 const db = await openDatabase(config.database);
 await migrate(db);
 
-createApp().listen(config.port, () => {
+createApp({ db }).listen(config.port, () => {
   console.log(`API listening on http://localhost:${config.port}`);
 });
