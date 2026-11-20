@@ -18,6 +18,7 @@ The main rule: **send the browser only what it shows.**
 | Unneeded columns | List query selects only the columns the table shows. |
 | Form code size | Add/edit/delete dialogs (React Hook Form) are lazy-loaded; measured: main bundle 155 kB gzip, form dialog 15 kB gzip loaded on first open. |
 | Chart library size | Recharts is only in the lazy-loaded Insights chunk — measured: 121 kB gzip, downloaded only when Insights is opened; main bundle stays 155 kB gzip. |
+| Caching between deploys | Core libraries in a separate `vendor` file (144 kB gzip) that rarely changes; our own code is 12 kB gzip. Hashed asset files are served with `cache-control: immutable`. |
 | Dropdown values | Countries come from `shared/` (no request). Departments / job titles from `/api/employees/filter-options` (`DISTINCT` on indexed columns). |
 | Importing a large sheet (Phase 2) | Validate all rows in memory first, then write in **one transaction** using batched statements. File size capped (e.g. 5 MB ≈ well over 10k rows). |
 | Exporting (Phase 2) | Uses the same filtered SQL query as the list, without pagination (export is the one place a full result set is intended). |

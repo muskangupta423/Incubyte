@@ -1,11 +1,9 @@
-import { createApp } from './app';
+import { createConfiguredApp } from './bootstrap';
 import { config } from './config';
-import { openDatabase } from './db/client';
-import { migrate } from './db/migrate';
 
-const db = await openDatabase(config.database);
-await migrate(db);
+/** Local development server: `npm run dev:api`. (Production runs src/vercel.ts instead.) */
+const app = await createConfiguredApp();
 
-createApp({ db }).listen(config.port, () => {
+app.listen(config.port, () => {
   console.log(`API listening on http://localhost:${config.port}`);
 });

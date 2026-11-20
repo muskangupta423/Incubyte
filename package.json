@@ -18,11 +18,13 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "seed": "npm run seed --workspace api"
+    "seed": "npm run seed --workspace api",
+    "build:vercel": "node scripts/build-vercel.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@types/node": "24.19.2",
+    "esbuild": "0.28.2",
     "eslint": "10.15.0",
     "eslint-plugin-react-hooks": "7.1.1",
     "globals": "17.14.0",
