@@ -32,7 +32,7 @@ The main rule: **send the browser only what it shows.**
 | Employee list, search + filter + sort | — | |
 | Insights summary (incl. median) | — | |
 | Insights by country / job title | — | |
-| Seed 10,000 employees | — | |
+| Seed 10,000 employees | 0.06–0.08 s | Local SQLite file, laptop; 20 multi-row INSERTs in one transaction. Turso (network) to be measured at deploy. |
 
 ## Known bottlenecks (and what we'd change at larger scale)
 

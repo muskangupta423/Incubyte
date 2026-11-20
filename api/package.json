@@ -6,7 +6,8 @@
     "dev": "tsx watch src/server.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed": "tsx src/db/seed/run-seed.ts"
   },
   "dependencies": {
     "@libsql/client": "0.18.0",
