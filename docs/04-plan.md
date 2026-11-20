@@ -20,10 +20,10 @@ so the git history shows how the solution evolved.
 | 11 | Performance check: time key API queries on the 10,000-employee DB, record results in [performance](05-performance.md) | Numbers measured, not guessed |
 | 12 | Deploy: Turso DB + Vercel (api + web); seed production DB | Public URL works |
 | | **Phase 2 — Moving off Excel** | |
-| 13 | Import API: parse .xlsx / .csv, row-level validation, dry-run preview | Unit tests for parsing & row errors; API tests |
-| 14 | Import API: save in one transaction, add-or-update by `employee_code`; template download | API tests: all-or-nothing, re-import creates no duplicates |
+| 13 | ✅ Import API: row-level validation and a check step (`/import/check`) — the browser reads the file (see D7aj) | Unit tests for row rules; API tests for every kind of row error |
+| 14 | ✅ Import API: save in one transaction, add-or-update by `employee_code`; template download (built in the browser) | API tests: all-or-nothing, consecutive codes, a 10,000-row file |
 | 15 | Export API: filtered list as .xlsx / .csv | API test checks columns & row count |
-| 16 | Web: Import dialog (upload → preview → errors / confirm) and Export button | Component tests pass |
+| 16 | ✅ Web: Import dialog (template → choose file → check / problems → import); Export button still to do | Tests upload real .xlsx and .csv files |
 | 17 | Salary components API: table, GET / PUT breakdown, "must add up to annual salary" rule; seed a breakdown for some employees | Unit tests for the sum rule; API tests |
 | 18 | Web: "Salary breakdown" section on the employee form (add / remove rows, live total vs. annual salary) | Component tests pass |
 | 19 | Redeploy, README polish, screenshots, video demo, AI usage notes | Submission ready |

@@ -39,3 +39,17 @@ export const ADVANCE_EMPLOYEE_CODE_SEQUENCE_SQL = `
 export const CURRENT_EMPLOYEE_CODE_SQL = `
   SELECT printf('${EMPLOYEE_CODE_PREFIX}%0${EMPLOYEE_CODE_DIGITS}d', last_value)
   FROM sequences WHERE name = '${SEQUENCE_NAME}'`;
+
+/**
+ * Bulk version (imports): take the next `?` numbers in one statement…
+ */
+export const RESERVE_EMPLOYEE_CODES_SQL = `
+  UPDATE sequences SET last_value = last_value + ? WHERE name = '${SEQUENCE_NAME}'`;
+
+/**
+ * …then each new row takes one of them: the code `?` numbers before the last one reserved
+ * (0 = the last). Used as a value inside a multi-row INSERT, in the same transaction.
+ */
+export const RESERVED_EMPLOYEE_CODE_SQL = `(
+  SELECT printf('${EMPLOYEE_CODE_PREFIX}%0${EMPLOYEE_CODE_DIGITS}d', last_value - ?)
+  FROM sequences WHERE name = '${SEQUENCE_NAME}')`;

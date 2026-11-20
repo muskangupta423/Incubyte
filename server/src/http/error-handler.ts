@@ -23,6 +23,10 @@ export const errorHandler: ErrorRequestHandler = (error: unknown, req, res, _nex
     sendError(res, 400, 'Request body is not valid JSON.');
     return;
   }
+  if (isTooLarge(error)) {
+    sendError(res, 413, 'This is too much data for one request. Please split the file.');
+    return;
+  }
 
   console.error(`Unexpected error on ${req.method} ${req.originalUrl}`, error);
   sendError(res, 500, 'Something went wrong. Please try again.');
@@ -31,6 +35,11 @@ export const errorHandler: ErrorRequestHandler = (error: unknown, req, res, _nex
 function sendError(res: Response, status: number, message: string, details?: ApiErrorDetail[]) {
   const body: ApiErrorResponse = { error: { message, ...(details && { details }) } };
   res.status(status).json(body);
+}
+
+/** express.json() rejects a body over its size limit with status 413. */
+function isTooLarge(error: unknown): boolean {
+  return error instanceof Error && 'status' in error && error.status === 413;
 }
 
 /** express.json() throws a SyntaxError carrying status 400 when the body cannot be parsed. */

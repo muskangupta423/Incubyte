@@ -9,7 +9,7 @@ import styled from 'styled-components';
 import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
-import { PlusIcon } from '../../components/icons';
+import { PlusIcon, UploadIcon } from '../../components/icons';
 import { LoadingState } from '../../components/LoadingState';
 import { PageHeader } from '../../components/PageHeader';
 import { Pagination } from '../../components/Pagination';
@@ -36,6 +36,12 @@ const BulkDeleteEmployeesDialog = lazy(() =>
     default: module.BulkDeleteEmployeesDialog,
   })),
 );
+// Also brings the spreadsheet library, so it is only downloaded when someone uploads.
+const ImportEmployeesDialog = lazy(() =>
+  import('../employee-import/ImportEmployeesDialog').then((module) => ({
+    default: module.ImportEmployeesDialog,
+  })),
+);
 
 const SEARCH_DEBOUNCE_MS = 300;
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
@@ -54,7 +60,8 @@ type OpenDialog =
   | { kind: 'add' }
   | { kind: 'edit'; employee: Employee }
   | { kind: 'delete'; employee: Employee }
-  | { kind: 'bulkDelete'; employees: Employee[] };
+  | { kind: 'bulkDelete'; employees: Employee[] }
+  | { kind: 'import' };
 
 export function EmployeesPage() {
   const { query, searchText, hasFilters, updateQuery, clearFilters } = useEmployeeListParams();
@@ -100,15 +107,24 @@ export function EmployeesPage() {
         title="Employees"
         description="Search, filter and manage salaries for everyone at ACME."
         actions={
-          // Phones: just the + icon (same accessible name), so the title keeps its row.
-          <Button
-            variant="primary"
-            onClick={() => showDialog({ kind: 'add' })}
-            aria-label={isPhone ? 'Add employee' : undefined}
-          >
-            <PlusIcon />
-            {!isPhone && 'Add employee'}
-          </Button>
+          // Phones: icons only (same accessible names), so the title keeps its row.
+          <>
+            <Button
+              onClick={() => showDialog({ kind: 'import' })}
+              aria-label={isPhone ? 'Upload employees' : undefined}
+            >
+              <UploadIcon />
+              {!isPhone && 'Upload'}
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => showDialog({ kind: 'add' })}
+              aria-label={isPhone ? 'Add employee' : undefined}
+            >
+              <PlusIcon />
+              {!isPhone && 'Add employee'}
+            </Button>
+          </>
         }
       />
       <EmployeeFilters
@@ -149,6 +165,7 @@ export function EmployeesPage() {
             {...dialogVisibility}
           />
         )}
+        {openDialog.kind === 'import' && <ImportEmployeesDialog {...dialogVisibility} />}
       </Suspense>
     </>
   );

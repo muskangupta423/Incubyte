@@ -205,7 +205,7 @@ function recordValues(record: EmployeeRecord): InValue[] {
  * Uniqueness is enforced by the database (not a SELECT beforehand), so two requests
  * arriving at the same time can't both slip through.
  */
-async function runWrite(db: Database, statements: InStatement[]) {
+export async function runWrite(db: Database, statements: InStatement[]) {
   try {
     return await db.batch(statements, 'write');
   } catch (error) {

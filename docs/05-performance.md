@@ -20,7 +20,7 @@ The main rule: **send the browser only what it shows.**
 | Chart library size | Recharts is only in the lazy-loaded Insights chunk — measured: 121 kB gzip, downloaded only when Insights is opened; main bundle stays 155 kB gzip. |
 | Caching between deploys | Core libraries in a separate `vendor` file (144 kB gzip) that rarely changes; our own code is 12 kB gzip. Hashed asset files are served with `cache-control: immutable`. |
 | Dropdown values | Countries come from `shared/` (no request). Departments / job titles from `/api/employees/filter-options` (`DISTINCT` on indexed columns). |
-| Importing a large sheet (Phase 2) | Validate all rows in memory first, then write in **one transaction** using batched statements. File size capped (e.g. 5 MB ≈ well over 10k rows). |
+| Importing a large sheet | The browser reads the file; the API checks every row with a **handful of queries for the whole file** (countries, existing codes, emails — 500 values per `IN (…)`), then writes in **one transaction** with multi-row statements (~20 for 10,000 rows, codes reserved in one step). Capped at 10,000 rows and 5 MB per file; only the upload routes accept a 4 MB request body. The spreadsheet library is downloaded only when the upload dialog opens (161 kB gzip). |
 | Exporting (Phase 2) | Uses the same filtered SQL query as the list, without pagination (export is the one place a full result set is intended). |
 
 ## Measured results
@@ -35,6 +35,9 @@ The main rule: **send the browser only what it shows.**
 | Insights summary (incl. median) | — | |
 | Insights by country / job title | — | |
 | Seed 10,000 employees | 0.06–0.08 s | Local SQLite file, laptop; 20 multi-row INSERTs in one transaction. |
+
+| Check a 10,000-row upload (9,999 updates + 1 error) | 0.06–0.11 s | Local API, laptop, against the 10,000-employee database; ~2.2 MB request. Saves nothing |
+| Import 10,000 new employees | < 0.4 s | The API test suite does this with an in-memory database (whole test file 0.43 s); one transaction |
 
 ### Live deployment (end to end, as a user feels it)
 

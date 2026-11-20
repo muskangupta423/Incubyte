@@ -61,4 +61,4 @@ Every push to `main` then deploys automatically.
 
 ## Tech stack
 
-TypeScript · Node.js · Express · SQLite (libSQL / Turso) · Zod · React · Vite · Styled Components · TanStack Query · React Hook Form · Recharts · Vitest · MSW · Vercel
+TypeScript · Node.js · Express · SQLite (libSQL / Turso) · Zod · React · Vite · Styled Components · TanStack Query · React Hook Form · Recharts · SheetJS (Excel/CSV) · Vitest · MSW · Vercel

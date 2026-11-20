@@ -1,9 +1,12 @@
 import express from 'express';
 import type { Database } from './db/client';
 import { createCountryRouter } from './features/countries/country-routes';
+import { createImportRouter } from './features/employee-import/import-routes';
 import { createEmployeeRouter } from './features/employees/employee-routes';
 import { createInsightsRouter } from './features/insights/insights-routes';
 import { errorHandler, notFoundHandler } from './http/error-handler';
+
+const IMPORT_BODY_LIMIT = '4mb';
 
 interface AppDependencies {
   db: Database;
@@ -16,6 +19,14 @@ interface AppDependencies {
 export function createApp({ db }: AppDependencies) {
   const app = express();
 
+  // Uploads carry a whole spreadsheet (10,000 rows ≈ 2 MB), so they get a bigger body limit —
+  // only they do. Mounted before the general parser, which would reject them at 100 kB.
+  // (Vercel itself accepts request bodies up to 4.5 MB.)
+  app.use(
+    '/api/employees/import',
+    express.json({ limit: IMPORT_BODY_LIMIT }),
+    createImportRouter(db),
+  );
   app.use(express.json());
 
   app.get('/api/health', (_req, res) => {

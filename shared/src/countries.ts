@@ -66,6 +66,20 @@ export function currencyName(currency: string): string {
   return currencyNames.of(currency) ?? currency;
 }
 
+const codesByLowerCaseName = new Map(
+  Object.keys(WORLD_CURRENCIES).map((code) => [countryName(code).toLowerCase(), code]),
+);
+
+/**
+ * "India", "india" or "IN" → "IN" (for spreadsheets, where people type names). Anything else is
+ * returned unchanged, so validation can report it as typed.
+ */
+export function countryCodeFromInput(value: string): string {
+  const trimmed = value.trim();
+  if (currencyOf(trimmed.toUpperCase())) return trimmed.toUpperCase();
+  return codesByLowerCaseName.get(trimmed.toLowerCase()) ?? trimmed;
+}
+
 /** Country codes sorted by their names, for dropdowns. */
 export function sortByCountryName(codes: readonly string[]): string[] {
   return [...codes].sort((a, b) => countryName(a).localeCompare(countryName(b)));

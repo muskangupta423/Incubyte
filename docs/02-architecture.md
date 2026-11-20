@@ -47,8 +47,9 @@ Each layer only talks to the one below it. This keeps business logic **easy to u
 │       ├── features/
 │       │   ├── employees/    routes, service, repository, tests
 │       │   ├── insights/     routes, service (stats math), repository (aggregation SQL)
-│       │   ├── compensation/ salary components (Phase 2)
-│       │   └── csv/          Excel/CSV import & export (Phase 2)
+│       │   ├── countries/    set-up countries: list, add (with exchange rate)
+│       │   ├── employee-import/  bulk upload: check rows, save in one transaction
+│       │   └── compensation/ salary components (Phase 2)
 │       ├── db/               connection, schema/migrations, seed
 │       ├── http/             error handler, validation middleware, error types
 │       └── app.ts            Express app (exported for tests)
@@ -59,8 +60,9 @@ Each layer only talks to the one below it. This keeps business logic **easy to u
 │       ├── features/
 │       │   ├── employees/    list page, form, API hooks, filters
 │       │   ├── dashboard/    insights page, charts, API hooks
-│       │   ├── compensation/ salary breakdown editor (Phase 2)
-│       │   └── csv/          import dialog, export button (Phase 2)
+│       │   ├── countries/    "Add a country" dialog, countries API hooks
+│       │   ├── employee-import/  upload dialog, spreadsheet reading, template download
+│       │   └── compensation/ salary breakdown editor (Phase 2)
 │       ├── services/         HTTP client (one place for fetch + error handling)
 │       ├── theme/            design tokens (colors, spacing, typography...) + global styles
 │       └── utils/            pure helpers (e.g. currency formatting)
@@ -161,10 +163,9 @@ erDiagram
 | GET | `/api/employees/filter-options` | Distinct countries (codes), departments and job titles that have employees (for filter dropdowns) |
 | GET | `/api/countries` | Countries that are set up, A→Z, with their currency (for the Add employee form) |
 | POST | `/api/countries` | Set up a country: `{ "code": "KE", "usdRate": 0.0077 }`; the rate is required only if no country uses that currency yet; 409 if already set up |
-| **Phase 2** | | |
-| GET | `/api/employees/import/template?format=xlsx\|csv` | Download an empty template with the right columns |
-| POST | `/api/employees/import?dryRun=true` | Upload a file → validate only, return preview (rows to add / update) and row-level errors |
-| POST | `/api/employees/import` | Upload a file → validate and save everything in **one transaction** (all or nothing) |
+| POST | `/api/employees/import/check` | Bulk upload, step 1: `{ "rows": [{ "rowNumber": 2, "fullName": …, … }] }` (up to 10,000) → how many would be added / updated, or each problem as *row · column · message*. Saves nothing |
+| POST | `/api/employees/import` | Bulk upload, step 2: same body → checks again and saves **all rows in one transaction**, or nothing (400 with the problems). New rows get consecutive codes; rows with a code update that employee |
+| **Phase 2 (not built yet)** | | |
 | GET | `/api/employees/export?format=xlsx\|csv&...filters` | Download the current filtered list |
 | GET | `/api/employees/:id/components` | Salary breakdown of one employee |
 | PUT | `/api/employees/:id/components` | Replace the whole breakdown (validated: amounts > 0, unique names, sum = annual salary) |
