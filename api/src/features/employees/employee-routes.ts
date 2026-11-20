@@ -7,6 +7,7 @@ import {
   createEmployee,
   deleteEmployee,
   getEmployee,
+  getFilterOptions,
   listEmployees,
   updateEmployee,
 } from './employee-service';
@@ -22,6 +23,11 @@ export function createEmployeeRouter(db: Database): Router {
   router.get('/', async (req, res) => {
     const query = parseInput(employeeListQuerySchema, req.query);
     res.json(await listEmployees(db, query));
+  });
+
+  // Registered before '/:id', otherwise Express would treat "filter-options" as an id.
+  router.get('/filter-options', async (_req, res) => {
+    res.json(await getFilterOptions(db));
   });
 
   router.get('/:id', async (req, res) => {

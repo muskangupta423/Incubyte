@@ -1,6 +1,7 @@
 import {
   COUNTRIES,
   type Employee,
+  type EmployeeFilterOptions,
   type EmployeeInput,
   type EmployeeListQuery,
   type PaginatedResponse,
@@ -12,6 +13,7 @@ import {
   DuplicateValueError,
   findEmployeeById,
   findEmployeePage,
+  findFilterOptions,
   insertEmployee,
   updateEmployee as updateEmployeeRow,
   type EmployeeRecord,
@@ -29,6 +31,10 @@ export async function listEmployees(
     totalItems,
     totalPages: Math.ceil(totalItems / query.pageSize),
   };
+}
+
+export async function getFilterOptions(db: Database): Promise<EmployeeFilterOptions> {
+  return findFilterOptions(db);
 }
 
 export async function getEmployee(db: Database, id: number): Promise<Employee> {

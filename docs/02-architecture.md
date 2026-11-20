@@ -139,12 +139,12 @@ erDiagram
 | POST | `/api/employees` | Create |
 | PUT | `/api/employees/:id` | Update |
 | DELETE | `/api/employees/:id` | Delete |
-| GET | `/api/insights/summary` | Headcount, total payroll, average, median (USD) |
-| GET | `/api/insights/by-country` | Stats per country (local + USD) |
-| GET | `/api/insights/by-job-title?country=` | Stats per job title, optionally in one country |
-| GET | `/api/insights/by-department` | Headcount & payroll per department |
-| GET | `/api/insights/distribution` | Count of employees per salary band (USD) |
-| GET | `/api/meta` | Lists of countries, departments, job titles (for dropdowns) |
+| GET | `/api/insights/summary` | Headcount, total payroll, min / median / average / max (USD), exchange-rate date |
+| GET | `/api/insights/by-country` | Stats per country (local currency + USD) |
+| GET | `/api/insights/by-job-title` | Stats per job title — across all countries, or in one with `?country=` |
+| GET | `/api/insights/by-department` | Headcount, payroll and stats per department |
+| GET | `/api/insights/distribution` | Headcount per $25k USD band (11 bands, last one is 250k+), empty bands included |
+| GET | `/api/employees/filter-options` | Distinct departments and job titles (for dropdowns). Countries come from `shared/` |
 | **Phase 2** | | |
 | GET | `/api/employees/import/template?format=xlsx\|csv` | Download an empty template with the right columns |
 | POST | `/api/employees/import?dryRun=true` | Upload a file → validate only, return preview (rows to add / update) and row-level errors |
@@ -166,6 +166,11 @@ Unexpected errors are logged on the server; the client only gets a generic messa
 unknown id → **404**; duplicate employee code or email → **409** naming the field. The body is validated with the
 shared `employeeInputSchema` (same rules as the web form). Currency is derived from the country. Each write and the
 read-back of the saved row run in one batch (one round trip, one transaction).
+
+**Insights rules:** every insights endpoint accepts the same optional filters (`?country=&department=`), so all
+dashboard numbers describe the same employees. All statistics are computed **in SQL** (one row per group comes back).
+Each group has USD stats; `local` stats (in the local currency) are included only when everyone in the group is paid
+in one currency — e.g. per country, or any grouping filtered to one country.
 
 **List endpoint rules:** `pageSize` defaults to 25, max 100; `sortBy` must be one of `fullName`, `employeeCode`,
 `annualSalary`, `hireDate` (whitelist → column map, never raw input in SQL); ties are broken by `id` so pages are stable;
@@ -196,8 +201,8 @@ Reasons for each choice are in [decisions & trade-offs](03-decisions.md).
 
 | Level | What | Tool | Speed |
 |-------|------|------|-------|
-| Unit | Services: validation, currency conversion, median/average, salary bands | Vitest | milliseconds, no DB |
-| Integration | API endpoints against an **in-memory SQLite** DB with a small fixed dataset | Vitest + Supertest | fast, isolated per test |
+| Unit | Shared Zod schemas (validation & normalisation), seed generator | Vitest | milliseconds, no DB |
+| Integration | API endpoints against an **in-memory SQLite** DB with a small fixed dataset — incl. insights maths (median, averages, bands) on 5 hand-checkable employees | Vitest + Supertest | fast, isolated per test |
 | Component | Key UI pieces: employee form validation, table rendering, error states | React Testing Library | fast, API mocked |
 
 All tests are **deterministic**: fixed test data, fixed seed for fake data, no network, no real clock.

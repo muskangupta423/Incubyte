@@ -10,14 +10,14 @@ The main rule: **send the browser only what it shows.**
 | Search typing | **Debounced** (≈300 ms) so we don't fire a request on every keystroke. |
 | Fast filters & grouping | **Indexes** on `(country, job_title)` (also covers country-only filters), `department`, `job_title`, `annual_salary`; unique on `email` and `employee_code`. |
 | Insights | **Aggregated in SQL** (`COUNT`, `SUM`, `AVG`, `MIN`, `MAX`, `GROUP BY`). Only small summary tables go over the network. |
-| Median | SQLite has no `MEDIAN`. We fetch only the **sorted salary column** for the group and pick the middle value in the service — cheap for 10k numbers and easy to unit test. |
+| Median | SQLite has no `MEDIAN`. Computed **in SQL with window functions** (`ROW_NUMBER` + `COUNT OVER` per group, then average of the middle one or two rows). Only one row per group leaves the database — individual salaries are never sent to the API. |
 | Currency conversion | Join with the small `exchange_rates` table inside the query; no per-row work in JavaScript. |
 | Repeated requests | **TanStack Query** caches responses in the browser; insights refetch only after data changes. |
 | Seeding 10,000 rows | Inserted in **one transaction, in batches** (one round trip per batch, not per row). |
 | Unbounded results | `pageSize` validated and capped (max 100); sort field **whitelisted** (never raw user input in SQL). |
 | Unneeded columns | List query selects only the columns the table shows. |
 | Chart library size | Dashboard route (with Recharts) is lazy-loaded, so the Employees page doesn't download it. |
-| Dropdown values | Countries / departments / job titles loaded once from `/api/meta`. |
+| Dropdown values | Countries come from `shared/` (no request). Departments / job titles from `/api/employees/filter-options` (`DISTINCT` on indexed columns). |
 | Importing a large sheet (Phase 2) | Validate all rows in memory first, then write in **one transaction** using batched statements. File size capped (e.g. 5 MB ≈ well over 10k rows). |
 | Exporting (Phase 2) | Uses the same filtered SQL query as the list, without pagination (export is the one place a full result set is intended). |
 
@@ -40,7 +40,7 @@ The main rule: **send the browser only what it shows.**
 |------------|---------------------|----------------------------|
 | Search uses `LIKE '%term%'`, which can't use a normal index | A scan of 10k rows is small | Use SQLite **FTS5** full-text search (or Postgres trigram index) |
 | Offset pagination gets slower on deep pages | Max ~400 pages of 25 | Switch to **cursor (keyset) pagination** |
-| Median needs the sorted salary list per group | 10k integers is small | Precompute stats on write, or move to Postgres `percentile_cont` |
+| Median sorts each group's salaries (window function) on every request | Sorting 10k numbers is cheap | Precompute stats on write / cache, or Postgres `percentile_cont` |
 | Insights recomputed on every request | Aggregations over 10k rows are cheap | Cache results and invalidate when employees change |
 
 ## What we intentionally did *not* add

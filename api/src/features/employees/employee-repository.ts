@@ -1,6 +1,13 @@
-import type { Employee, EmployeeInput, EmployeeListQuery, EmployeeSortField } from '@acme/shared';
+import type {
+  Employee,
+  EmployeeFilterOptions,
+  EmployeeInput,
+  EmployeeListQuery,
+  EmployeeSortField,
+} from '@acme/shared';
 import { LibsqlError, type InStatement, type InValue, type Row } from '@libsql/client';
 import type { Database } from '../../db/client';
+import { buildEmployeeFilters } from './employee-filters';
 
 /**
  * Whitelist of sortable columns. User input only ever selects a key from this map,
@@ -44,7 +51,7 @@ export async function findEmployeePage(
   db: Database,
   query: EmployeeListQuery,
 ): Promise<EmployeePage> {
-  const { whereSql, args } = buildFilters(query);
+  const { whereSql, args } = buildEmployeeFilters(query);
   const orderSql = `${SORT_COLUMNS[query.sortBy]} ${query.sortOrder === 'desc' ? 'DESC' : 'ASC'}`;
   const offset = (query.page - 1) * query.pageSize;
 
@@ -71,6 +78,19 @@ export async function findEmployeePage(
     totalItems: Number(countResult?.rows[0]?.total ?? 0),
     employees: (pageResult?.rows ?? []).map(toEmployee),
   };
+}
+
+/** Distinct departments and job titles, A→Z. Both columns are indexed, so this reads the indexes only. */
+export async function findFilterOptions(db: Database): Promise<EmployeeFilterOptions> {
+  const [departments, jobTitles] = await db.batch(
+    [
+      'SELECT DISTINCT department AS value FROM employees ORDER BY value',
+      'SELECT DISTINCT job_title AS value FROM employees ORDER BY value',
+    ],
+    'read',
+  );
+  const values = (rows: Row[] = []) => rows.map((row) => String(row.value));
+  return { departments: values(departments?.rows), jobTitles: values(jobTitles?.rows) };
 }
 
 export async function findEmployeeById(db: Database, id: number): Promise<Employee | null> {
@@ -164,41 +184,6 @@ async function runWrite(db: Database, statements: InStatement[]) {
 function duplicateFieldIn(message: string): DuplicateValueError['field'] | undefined {
   const column = /UNIQUE constraint failed: (\S+)/.exec(message)?.[1];
   return column ? UNIQUE_COLUMNS[column] : undefined;
-}
-
-function buildFilters(query: EmployeeListQuery): { whereSql: string; args: InValue[] } {
-  const conditions: string[] = [];
-  const args: InValue[] = [];
-
-  if (query.search) {
-    conditions.push(
-      `(e.full_name LIKE ? ESCAPE '\\' OR e.email LIKE ? ESCAPE '\\' OR e.employee_code LIKE ? ESCAPE '\\')`,
-    );
-    const pattern = `%${escapeLikePattern(query.search)}%`;
-    args.push(pattern, pattern, pattern);
-  }
-  if (query.country) {
-    conditions.push('e.country = ?');
-    args.push(query.country);
-  }
-  if (query.department) {
-    conditions.push('e.department = ?');
-    args.push(query.department);
-  }
-  if (query.jobTitle) {
-    conditions.push('e.job_title = ?');
-    args.push(query.jobTitle);
-  }
-
-  return {
-    whereSql: conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '',
-    args,
-  };
-}
-
-/** In LIKE, % and _ are wildcards. Escape them so a search for "50%" matches the text "50%". */
-function escapeLikePattern(text: string): string {
-  return text.replace(/[\\%_]/g, (character) => `\\${character}`);
 }
 
 function toEmployee(row: Row): Employee {

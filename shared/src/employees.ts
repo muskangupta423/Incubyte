@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { COUNTRY_CODES } from './countries';
+import { countryCode, optionalFilter } from './schema-helpers';
 
 /** An employee as returned by the API. Salaries are whole units of the employee's local currency. */
 export interface Employee {
@@ -17,6 +17,12 @@ export interface Employee {
   hireDate: string;
 }
 
+/** Values that currently exist in the data, for filter dropdowns. */
+export interface EmployeeFilterOptions {
+  departments: string[];
+  jobTitles: string[];
+}
+
 export const EMPLOYEE_SORT_FIELDS = [
   'fullName',
   'employeeCode',
@@ -30,17 +36,6 @@ export const SORT_ORDERS = ['asc', 'desc'] as const;
 export const DEFAULT_PAGE_SIZE = 25;
 export const MAX_PAGE_SIZE = 100;
 const MAX_SEARCH_LENGTH = 100;
-
-/** Accepts "in", " IN " etc. and returns "IN"; only supported countries pass. */
-const countryCode = z
-  .string()
-  .trim()
-  .toUpperCase()
-  .pipe(z.enum(COUNTRY_CODES, 'Choose a supported country'));
-
-/** Query strings send "" for cleared inputs; treat that the same as "not provided". */
-const optionalFilter = <Schema extends z.ZodType>(schema: Schema) =>
-  z.preprocess((value) => (value === '' ? undefined : value), schema.optional());
 
 /**
  * Query parameters for GET /api/employees.

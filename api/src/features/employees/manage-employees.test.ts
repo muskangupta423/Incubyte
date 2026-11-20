@@ -20,6 +20,24 @@ beforeEach(() => {
   employee = createEmployeeFactory();
 });
 
+describe('GET /api/employees/filter-options', () => {
+  it('lists the distinct departments and job titles, A→Z', async () => {
+    const { app } = await createAppWith([
+      employee({ department: 'Sales', job_title: 'Account Executive' }),
+      employee(),
+      employee(),
+    ]);
+
+    const response = await request(app).get('/api/employees/filter-options');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      departments: ['Engineering', 'Sales'],
+      jobTitles: ['Account Executive', 'Software Engineer'],
+    });
+  });
+});
+
 describe('GET /api/employees/:id', () => {
   it('returns one employee', async () => {
     const { app } = await createAppWith([employee({ full_name: 'Asha Rao' })]);
