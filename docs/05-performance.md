@@ -25,20 +25,51 @@ The main rule: **send the browser only what it shows.**
 
 ## Measured results
 
-> To be filled in at build step 11 with real timings against the 10,000-employee database
-> (no performance claims until they are measured).
+All numbers are measured, not estimated. Reproduce them with `npm run bench` (read-only; needs the seeded database).
+
+### Query time inside the API (`npm run bench`)
+
+The same service functions the API calls, without HTTP, on the local 10,000-employee SQLite file
+(laptop, Node 24). 30 runs each after 5 warm-up runs.
+
+| Operation | Median | Slowest |
+|-----------|--------|---------|
+| Employee list, page 1 (sorted by name) | 0.9 ms | 1.0 ms |
+| Employee list, last page (offset 9,975) | 5.7 ms | 5.9 ms |
+| Search "sharma" + country + salary sort | 1.0 ms | 1.6 ms |
+| Employee list sorted by code | 0.9 ms | 1.0 ms |
+| Filter options (countries, departments, titles) | 0.6 ms | 0.6 ms |
+| Insights summary (incl. median) | 13.1 ms | 13.4 ms |
+| Insights by country | 12.6 ms | 12.9 ms |
+| Insights by job title, one country | 3.4 ms | 3.9 ms |
+| Insights by department | 13.1 ms | 13.4 ms |
+| Salary distribution (11 bands) | 1.8 ms | 2.0 ms |
+| Export everyone (no paging) | 35.9 ms | 36.9 ms |
+
+**What this shows:** list, search, sort and filters take about a millisecond. The insights that
+compute a **median** for every group are the heaviest (~13 ms), because the median needs each
+group's salaries sorted — still small next to the network time below. The last page costs more
+than the first (5.7 vs 0.9 ms) because offset pagination skips 9,975 rows.
+
+### Query plans (`EXPLAIN QUERY PLAN`, printed by `npm run bench`)
+
+| Query | Plan | Meaning |
+|-------|------|---------|
+| Filter by country | `SEARCH … USING COVERING INDEX idx_employees_country_job_title (country=?)` | Index used |
+| Filter by department | `SEARCH … USING COVERING INDEX idx_employees_department` | Index used |
+| Filter by job title | `SEARCH … USING COVERING INDEX idx_employees_job_title` | Index used |
+| Sort by salary, first page | `SCAN … USING COVERING INDEX idx_employees_annual_salary` (+ small sort for the id tie-breaker) | Reads rows in salary order |
+| Sort by name, first page | `SCAN` + `USE TEMP B-TREE FOR ORDER BY` | No index on names: sorts all rows (0.9 ms at 10k) |
+| Search by text | `SCAN` | `LIKE '%…%'` can't use an index (see bottlenecks) |
+
+### Bulk operations
 
 | Operation | Time | Notes |
 |-----------|------|-------|
-| Employee list, page 1, no filters | — | |
-| Employee list, search + filter + sort | — | |
-| Insights summary (incl. median) | — | |
-| Insights by country / job title | — | |
-| Seed 10,000 employees | 0.06–0.08 s | Local SQLite file, laptop; 20 multi-row INSERTs in one transaction. |
-
-| Check a 10,000-row upload (9,999 updates + 1 error) | 0.06–0.11 s | Local API, laptop, against the 10,000-employee database; ~2.2 MB request. Saves nothing |
-| Export all 10,000 employees | 0.05–0.08 s | Local API, laptop; 2.6 MB JSON (the file is then built in the browser). One country: 0.01 s |
-| Import 10,000 new employees | < 0.4 s | The API test suite does this with an in-memory database (whole test file 0.43 s); one transaction |
+| Seed 10,000 employees | 0.06–0.08 s | Local SQLite file, laptop; 20 multi-row INSERTs in one transaction |
+| Check a 10,000-row upload (9,999 updates + 1 error) | 0.06–0.11 s | Local API over HTTP; ~2.2 MB request. Saves nothing |
+| Import 10,000 new employees | < 0.4 s | API test with an in-memory database (whole test file 0.43 s); one transaction |
+| Export all 10,000 employees | 0.05–0.08 s | Local API over HTTP; 2.6 MB JSON (the file is then built in the browser). One country: 0.01 s |
 
 ### Live deployment (end to end, as a user feels it)
 
@@ -64,10 +95,11 @@ recorded rather than hidden. Deploying the function and database in a region nea
 
 | Bottleneck | Fine at 10k because… | At ~1M employees we would… |
 |------------|---------------------|----------------------------|
-| Search uses `LIKE '%term%'`, which can't use a normal index | A scan of 10k rows is small | Use SQLite **FTS5** full-text search (or Postgres trigram index) |
-| Offset pagination gets slower on deep pages | Max ~400 pages of 25 | Switch to **cursor (keyset) pagination** |
-| Median sorts each group's salaries (window function) on every request | Sorting 10k numbers is cheap | Precompute stats on write / cache, or Postgres `percentile_cont` |
-| Sorting by employee code can't use the code's index (it sorts by `length(code)`, then code, for number order) | Measured 11–14 ms on 10k rows | Store the code's number in its own indexed column |
+| Search uses `LIKE '%term%'`, which can't use a normal index | A scan of 10k rows is small: search + filter + sort measured 1.0 ms | Use SQLite **FTS5** full-text search (or Postgres trigram index) |
+| Offset pagination gets slower on deep pages | Max ~400 pages of 25: last page 5.7 ms vs 0.9 ms for the first | Switch to **cursor (keyset) pagination** |
+| Median sorts each group's salaries (window function) on every request | Sorting 10k numbers is cheap: ~13 ms for all groups | Precompute stats on write / cache, or Postgres `percentile_cont` |
+| Sorting by employee code can't use the code's index (it sorts by `length(code)`, then code, for number order) | Measured 0.9 ms for the first page on 10k rows (`npm run bench`) | Store the code's number in its own indexed column |
+| Sorting by name has no index (`USE TEMP B-TREE FOR ORDER BY`) | Sorting 10k names for the first page: 0.9 ms | Add an index on `full_name` (cheap, but one more index to maintain on every write) |
 | Insights recomputed on every request | Aggregations over 10k rows are cheap | Cache results and invalidate when employees change |
 
 ## What we intentionally did *not* add
