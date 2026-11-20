@@ -37,7 +37,8 @@ and answer common pay questions without building a pivot table.
 ### Phase 2 — Moving off Excel
 
 Built after Phase 1 (F1–F8) is working and deployed, so a usable product exists first. **F9–F11 are built**
-(the HR manager asked for bulk upload while testing); F12 is next.
+(the HR manager asked for bulk upload while testing). **F12 is deferred** by the developer's choice, to
+finish and polish what is built first.
 
 | # | Feature | Why it matters to the HR Manager |
 |---|---------|----------------------------------|
