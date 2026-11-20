@@ -9,7 +9,10 @@
  * Docs: https://vercel.com/docs/build-output-api/v3
  */
 import { execSync } from 'node:child_process';
-import { cpSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { build } from 'esbuild';
 
 const OUTPUT = '.vercel/output';
@@ -22,6 +25,19 @@ console.log('1/3 Building the web app…');
 execSync('npm run build --workspace web', { stdio: 'inherit' });
 cpSync('web/dist', `${OUTPUT}/static`, { recursive: true });
 
+/**
+ * The full libSQL client (native SQLite engine) is only used for local files, never on Vercel,
+ * which uses the pure-JavaScript web client for the hosted database — so leave the full client
+ * out of the bundle. A plugin rather than `external: ['@libsql/client']`, because that option
+ * would also leave out '@libsql/client/web', the one we need.
+ */
+const excludeFullLibsqlClient = {
+  name: 'exclude-full-libsql-client',
+  setup(build) {
+    build.onResolve({ filter: /^@libsql\/client$/ }, ({ path }) => ({ path, external: true }));
+  },
+};
+
 console.log('2/3 Bundling the API into one serverless function…');
 await build({
   entryPoints: ['server/src/vercel.ts'],
@@ -32,9 +48,7 @@ await build({
   format: 'cjs',
   target: 'node22',
   sourcemap: true,
-  // The full libSQL client (native SQLite engine) is only used for local files, never on Vercel,
-  // which uses the bundled pure-JavaScript web client for the hosted database.
-  external: ['@libsql/client'],
+  plugins: [excludeFullLibsqlClient],
   logLevel: 'warning',
 });
 writeJson(`${FUNCTION_DIR}/.vc-config.json`, {
@@ -44,6 +58,7 @@ writeJson(`${FUNCTION_DIR}/.vc-config.json`, {
   // Let Express read the raw request body itself (express.json()).
   shouldAddHelpers: false,
 });
+assertFunctionLoadsWithoutNodeModules(`${FUNCTION_DIR}/index.cjs`);
 
 console.log('3/3 Writing routes…');
 writeJson(`${OUTPUT}/config.json`, {
@@ -63,6 +78,22 @@ writeJson(`${OUTPUT}/config.json`, {
 });
 
 console.log(`Done → ${OUTPUT}`);
+
+/**
+ * node_modules is not deployed with the function, so the bundle must load on its own.
+ * Loading a copy from a temporary folder (no node_modules above it) fails the build here
+ * instead of every API request in production.
+ */
+function assertFunctionLoadsWithoutNodeModules(bundlePath) {
+  const isolatedDir = mkdtempSync(join(tmpdir(), 'api-func-'));
+  const isolatedBundle = join(isolatedDir, 'index.cjs');
+  try {
+    copyFileSync(bundlePath, isolatedBundle);
+    createRequire(import.meta.url)(isolatedBundle);
+  } finally {
+    rmSync(isolatedDir, { recursive: true, force: true });
+  }
+}
 
 function writeJson(path, value) {
   mkdirSync(path.slice(0, path.lastIndexOf('/')), { recursive: true });

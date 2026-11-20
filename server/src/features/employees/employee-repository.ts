@@ -5,7 +5,10 @@ import type {
   EmployeeListQuery,
   EmployeeSortField,
 } from '@acme/shared';
-import { LibsqlError, type InStatement, type InValue, type Row } from '@libsql/client';
+import type { InStatement, InValue, Row } from '@libsql/client';
+// From the web client: the same class the full client throws, without loading the full client
+// (and its native SQLite engine), which is not shipped with the serverless function.
+import { LibsqlError } from '@libsql/client/web';
 import type { Database } from '../../db/client';
 import {
   ADVANCE_EMPLOYEE_CODE_SEQUENCE_SQL,
