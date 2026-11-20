@@ -27,10 +27,10 @@ export function countryTakeaway(countries: readonly CountryInsight[]): string | 
     const local = highest.local
       ? ` (${formatMoney(highest.local.median, highest.local.currency)})`
       : '';
-    return `Median pay in ${countryName(highest.country)} is ${formatMoney(highest.usd.median, 'USD')}${local}.`;
+    return `Typical pay in ${countryName(highest.country)} is ${formatMoney(highest.usd.median, 'USD')}${local}.`;
   }
   return (
-    `Median pay is highest in ${countryName(highest.country)} (${formatMoney(highest.usd.median, 'USD')}) ` +
+    `Typical pay is highest in ${countryName(highest.country)} (${formatMoney(highest.usd.median, 'USD')}) ` +
     `and lowest in ${countryName(lowest.country)} (${formatMoney(lowest.usd.median, 'USD')}).`
   );
 }

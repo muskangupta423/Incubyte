@@ -21,7 +21,7 @@ export function SummaryCards({ stats, exchangeRatesAsOf }: SummaryCardsProps) {
           detail={formatMoney(stats.totalPayrollUsd, 'USD')}
         />
         <StatCard
-          label="Median salary"
+          label="Typical salary (median)"
           value={formatMoney(stats.usd.median, 'USD')}
           detail={
             local ? formatMoney(local.median, local.currency) : 'Half earn more, half earn less'

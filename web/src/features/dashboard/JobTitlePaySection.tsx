@@ -33,7 +33,9 @@ export function JobTitlePaySection({ filters }: { filters: InsightsFilter }) {
         return (
           <InsightSection
             title="Pay by job title"
-            takeaway={rows.length > 0 ? `In ${currency}, ${scope}. Highest median first.` : null}
+            takeaway={
+              rows.length > 0 ? `In ${currency}, ${scope}. Highest typical pay first.` : null
+            }
           >
             <ScrollArea tabIndex={0} aria-label="Pay by job title table">
               <Table>
@@ -42,7 +44,7 @@ export function JobTitlePaySection({ filters }: { filters: InsightsFilter }) {
                     <th scope="col">Job title</th>
                     <NumberHeader scope="col">Employees</NumberHeader>
                     <NumberHeader scope="col">Min</NumberHeader>
-                    <NumberHeader scope="col">Median</NumberHeader>
+                    <NumberHeader scope="col">Typical (median)</NumberHeader>
                     <NumberHeader scope="col">Average</NumberHeader>
                     <NumberHeader scope="col">Max</NumberHeader>
                   </tr>

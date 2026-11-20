@@ -21,7 +21,7 @@ describe('countryTakeaway', () => {
     ];
 
     expect(countryTakeaway(countries)).toBe(
-      'Median pay is highest in United States ($102,000) and lowest in India ($28,534).',
+      'Typical pay is highest in United States ($102,000) and lowest in India ($28,534).',
     );
   });
 
@@ -32,7 +32,7 @@ describe('countryTakeaway', () => {
       local: { currency: 'INR', min: 1, median: 2_503_000, average: 1, max: 1 },
     };
 
-    expect(countryTakeaway([india])).toBe('Median pay in India is $28,534 (₹2,503,000).');
+    expect(countryTakeaway([india])).toBe('Typical pay in India is $28,534 (₹2,503,000).');
   });
 
   it('has nothing to say without data', () => {

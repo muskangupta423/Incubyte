@@ -16,8 +16,6 @@ export interface BarDatum {
 
 interface BarChartProps {
   data: readonly BarDatum[];
-  /** "horizontal" bars suit long category names (countries, departments) and narrow phone screens. */
-  orientation: 'horizontal' | 'vertical';
   /** Full value, e.g. "$102,000" (tooltip and screen-reader list). */
   formatValue: (value: number) => string;
   /** Short value for the axis, e.g. "$100K". */
@@ -26,28 +24,18 @@ interface BarChartProps {
 
 const ROW_HEIGHT = 36;
 const AXIS_SPACE = 40;
-const VERTICAL_CHART_HEIGHT = 280;
 const CATEGORY_AXIS_WIDTH = 120;
 
 /**
- * A single-series bar chart in the brand colour. Colours come from CSS (theme tokens), so the chart
- * follows light/dark mode. The same numbers are also given as a visually hidden list for screen readers.
+ * A single-series bar chart in the brand colour, with horizontal bars: each category gets its own
+ * row with its label on the left, so labels never overlap — at any screen width, and however long
+ * the labels are (country names, salary ranges like "$100K–$125K"). The chart grows with the rows.
+ *
+ * Colours come from CSS (theme tokens), so the chart follows light/dark mode. The same numbers are
+ * also given as a visually hidden list for screen readers.
  */
-export function BarChart({ data, orientation, formatValue, formatTick }: BarChartProps) {
-  const isHorizontal = orientation === 'horizontal';
-  const height = isHorizontal ? data.length * ROW_HEIGHT + AXIS_SPACE : VERTICAL_CHART_HEIGHT;
-  const valueAxis = {
-    type: 'number' as const,
-    tickFormatter: formatTick,
-    tickLine: false,
-    axisLine: false,
-  };
-  const categoryAxis = {
-    type: 'category' as const,
-    dataKey: 'label',
-    tickLine: false,
-    interval: 0,
-  };
+export function BarChart({ data, formatValue, formatTick }: BarChartProps) {
+  const height = data.length * ROW_HEIGHT + AXIS_SPACE;
 
   return (
     <Figure>
@@ -55,21 +43,18 @@ export function BarChart({ data, orientation, formatValue, formatTick }: BarChar
         <RechartsBarChart
           data={[...data]}
           // Recharts names layouts by axis direction: "vertical" layout = horizontal bars.
-          layout={isHorizontal ? 'vertical' : 'horizontal'}
+          layout="vertical"
           margin={{ top: 4, right: 16, bottom: 4, left: 4 }}
         >
-          <CartesianGrid horizontal={!isHorizontal} vertical={isHorizontal} />
-          {isHorizontal ? (
-            <>
-              <XAxis {...valueAxis} />
-              <YAxis {...categoryAxis} width={CATEGORY_AXIS_WIDTH} />
-            </>
-          ) : (
-            <>
-              <XAxis {...categoryAxis} />
-              <YAxis {...valueAxis} width={56} />
-            </>
-          )}
+          <CartesianGrid horizontal={false} />
+          <XAxis type="number" tickFormatter={formatTick} tickLine={false} axisLine={false} />
+          <YAxis
+            type="category"
+            dataKey="label"
+            tickLine={false}
+            interval={0}
+            width={CATEGORY_AXIS_WIDTH}
+          />
           <Tooltip
             content={({ active, payload, label }) => {
               const value = payload?.[0]?.value;
@@ -85,7 +70,7 @@ export function BarChart({ data, orientation, formatValue, formatTick }: BarChar
           <Bar
             dataKey="value"
             name="Value"
-            radius={isHorizontal ? [0, 4, 4, 0] : [4, 4, 0, 0]}
+            radius={[0, 4, 4, 0]}
             maxBarSize={32}
             isAnimationActive={false}
           />

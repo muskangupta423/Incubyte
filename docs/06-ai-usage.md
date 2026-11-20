@@ -157,7 +157,7 @@ the workflow was unworkable. Reviewing AI output as a user, not just as a code r
 
 ### 10. My usability review after testing the app
 
-I used the app as the HR manager and raised four issues the AI had not considered:
+I used the app as the HR manager and raised issues the AI had not considered (the first four below; 5 and 6 came later, after deploying):
 
 > 1. Pagination should be sticky to the bottom — with many rows I have to scroll to the bottom a lot to change page.
 > 2. There should be a "jump to page" option — for lakhs of employees, previous/next isn't enough.
@@ -173,6 +173,8 @@ I used the app as the HR manager and raised four issues the AI had not considere
 | 3b | Hover state for Edit / Delete (raised during review) | Their hover used the same grey as the row hover, so it was invisible on desktop. Edit now hovers lime (the accent), Delete hovers soft red with a red icon (clearly destructive), and both show a tooltip naming the employee |
 | 4a | Bulk delete | Planned next: checkboxes, "select all on this page", one confirmation for all selected |
 | 4b | Bulk upload | Phase 2 Excel/CSV import (template, row-by-row validation preview, all-or-nothing save) — order agreed after bulk delete |
+| 5 | Salary distribution labels overlapping (raised after deploying) | The chart was the only one with vertical bars: 11 range labels ("$100K–$125K") side by side did not fit a half-width card. I suggested a full-screen button per chart; the AI recommended fixing the cause instead — full screen would leave the normal view unreadable. Agreed: the chart now uses horizontal bars like the others (one row per range, label on the left), and the unused vertical layout was removed from the shared chart. Full screen kept as a later option if a chart outgrows its card |
+| 6 | "Median salary" not understandable | The AI had used the statistics term with no explanation. If I had to ask what it meant, an HR manager would too. The screen now leads with plain words and keeps the precise term: **"Typical salary (median)"**, **"Typical pay by country (median, USD)"**, table column **"Typical (median)"**, and takeaways say *"Typical pay is highest in…"*. The card under it still explains *"Half earn more, half earn less"* |
 
 These came from **using the product, not reading the code** — the same way I caught the employee-code
 problem (section 9). The AI built what was specified; real HR workflows (hundreds of pages, many rows

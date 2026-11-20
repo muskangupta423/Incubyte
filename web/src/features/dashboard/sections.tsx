@@ -23,9 +23,11 @@ export function PayByCountrySection({ filters }: { filters: InsightsFilter }) {
       errorTitle="Couldn't load pay by country"
     >
       {(countries) => (
-        <InsightSection title="Median pay by country (USD)" takeaway={countryTakeaway(countries)}>
+        <InsightSection
+          title="Typical pay by country (median, USD)"
+          takeaway={countryTakeaway(countries)}
+        >
           <BarChart
-            orientation="horizontal"
             data={[...countries]
               .sort((a, b) => b.usd.median - a.usd.median)
               .map((row) => ({ label: countryName(row.country), value: row.usd.median }))}
@@ -50,7 +52,6 @@ export function SalaryDistributionSection({ filters }: { filters: InsightsFilter
       {(bands) => (
         <InsightSection title="Salary distribution (USD)" takeaway={distributionTakeaway(bands)}>
           <BarChart
-            orientation="vertical"
             data={bands.map((band) => ({ label: salaryBandLabel(band), value: band.headcount }))}
             formatValue={(count) => `${formatNumber(count)} employees`}
             formatTick={formatNumber}
@@ -78,7 +79,6 @@ export function PayrollByDepartmentSection({ filters }: { filters: InsightsFilte
             takeaway={departmentTakeaway(departments)}
           >
             <BarChart
-              orientation="horizontal"
               data={[...departments]
                 .sort((a, b) => b.totalPayrollUsd - a.totalPayrollUsd)
                 .map((row) => ({

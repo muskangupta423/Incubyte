@@ -34,7 +34,7 @@ describe('Insights page', () => {
 
     expect(await statValue('Employees')).toHaveTextContent('10,000');
     expect(await statValue('Total annual payroll')).toHaveTextContent('$713.8M');
-    expect(await statValue('Median salary')).toHaveTextContent('$63,800');
+    expect(await statValue('Typical salary (median)')).toHaveTextContent('$63,800');
     expect(await statValue('Average salary')).toHaveTextContent('$64,800');
     expect(
       screen.getByText('USD figures use exchange rates as of Nov 1, 2026.'),
@@ -45,9 +45,11 @@ describe('Insights page', () => {
     useFakeApi();
     renderRoute('/insights');
 
-    const countries = await screen.findByRole('region', { name: 'Median pay by country (USD)' });
+    const countries = await screen.findByRole('region', {
+      name: 'Typical pay by country (median, USD)',
+    });
     expect(countries).toHaveTextContent(
-      'Median pay is highest in United States ($102,000) and lowest in India ($28,534).',
+      'Typical pay is highest in United States ($102,000) and lowest in India ($28,534).',
     );
     // Same numbers as the chart, available to screen readers.
     expect(within(countries).getByText('India: $28,534')).toBeInTheDocument();
@@ -60,7 +62,7 @@ describe('Insights page', () => {
     ).toHaveTextContent('Engineering accounts for 80% of payroll and 40% of employees.');
   });
 
-  it('lists pay by job title in USD, highest median first', async () => {
+  it('lists pay by job title in USD, highest typical (median) pay first', async () => {
     useFakeApi();
     renderRoute('/insights');
 
@@ -69,7 +71,12 @@ describe('Insights page', () => {
     expect(rows[1]).toHaveTextContent('Engineering Manager');
     expect(rows[1]).toHaveTextContent('$120,000');
     expect(rows[2]).toHaveTextContent('Software Engineer');
-    expect(section('Pay by job title')).toHaveTextContent('In USD, across all countries.');
+    expect(
+      within(table).getByRole('columnheader', { name: 'Typical (median)' }),
+    ).toBeInTheDocument();
+    expect(section('Pay by job title')).toHaveTextContent(
+      'In USD, across all countries. Highest typical pay first.',
+    );
   });
 
   it('applies a country filter to every section and switches to local currency', async () => {
@@ -81,8 +88,10 @@ describe('Insights page', () => {
 
     await waitFor(() => expect(section('Pay by job title')).toHaveTextContent('In INR, in India.'));
     expect(within(screen.getByRole('table')).getByText('₹2,400,000')).toBeInTheDocument();
-    expect(await statValue('Median salary')).toHaveTextContent('$28,534');
-    expect((await statValue('Median salary'))?.nextElementSibling).toHaveTextContent('₹2,503,000');
+    expect(await statValue('Typical salary (median)')).toHaveTextContent('$28,534');
+    expect((await statValue('Typical salary (median)'))?.nextElementSibling).toHaveTextContent(
+      '₹2,503,000',
+    );
     expect(router.state.location.search).toBe('?country=IN');
 
     // All five endpoints were asked for India's figures.
