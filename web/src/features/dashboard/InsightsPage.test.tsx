@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { renderRoute } from '../../test/render';
+import { setScreenSize } from '../../test/screen-size';
 import { server } from '../../test/server';
 import { employeeApiHandlers } from '../employees/test-data';
 import { insightsApiHandlers } from './test-data';
@@ -135,5 +136,21 @@ describe('Insights page', () => {
     expect(await screen.findByText("Couldn't load pay by country")).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
     expect(await screen.findByRole('table')).toBeInTheDocument();
+  });
+});
+
+describe('Insights page on a phone', () => {
+  it('shows active filters as chips instead of a "Clear filters" button', async () => {
+    setScreenSize('phone');
+    useFakeApi();
+    const { user, router } = renderRoute('/insights?country=IN');
+    await screen.findByRole('table');
+
+    expect(screen.queryByRole('button', { name: 'Clear filters' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Remove Country filter: India' }));
+
+    expect(router.state.location.search).toBe('');
+    expect(screen.getByLabelText('Country')).toHaveValue('');
   });
 });

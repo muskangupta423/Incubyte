@@ -87,6 +87,14 @@ export function ArrowUpDownIcon() {
   );
 }
 
+export function FilterIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M4 6h16M7 12h10M10 18h4" />
+    </svg>
+  );
+}
+
 export function CloseIcon() {
   return (
     <svg {...iconProps}>

@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useId, useRef, type ReactNode } from 'react';
+import { useEffect, useEffectEvent, useId, useRef, useState, type ReactNode } from 'react';
 import styled, { css, keyframes } from 'styled-components';
 import { Button } from './Button';
 import { CloseIcon } from './icons';
@@ -16,6 +16,20 @@ export interface DialogVisibility {
   onClose: () => void;
   /** The closing animation has finished: the dialog can now be removed. */
   onExited: () => void;
+}
+
+/**
+ * Open/closed state for a dialog that carries no data of its own (e.g. a filters panel),
+ * including the "closing" step in between. Render the dialog while `isShown`.
+ */
+export function useDialog() {
+  const [state, setState] = useState<'closed' | 'open' | 'closing'>('closed');
+  const visibility: DialogVisibility = {
+    open: state === 'open',
+    onClose: () => setState('closing'),
+    onExited: () => setState('closed'),
+  };
+  return { isShown: state !== 'closed', show: () => setState('open'), visibility };
 }
 
 interface DialogProps extends DialogVisibility {

@@ -1,5 +1,5 @@
 import { countryName, type Employee, type EmployeeSortField } from '@acme/shared';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { Button } from '../../components/Button';
 import {
   ArrowDownIcon,
@@ -24,6 +24,8 @@ interface EmployeeTableProps {
 /**
  * One semantic <table>. On phones, CSS turns each row into a card (labels come from data-label)
  * and the sortable headers into a row of sort buttons — same markup, no duplicate content.
+ * On tablets the table is wider than the screen: it scrolls sideways inside its own card (the page
+ * never does), with the Edit/Delete column pinned on the right so actions stay in reach.
  */
 export function EmployeeTable({
   employees,
@@ -36,67 +38,75 @@ export function EmployeeTable({
   const sortProps = { sortBy, sortOrder, onSortChange };
 
   return (
-    <Table>
-      <caption className="visually-hidden">Employees</caption>
-      <thead>
-        <tr>
-          <SortableHeader field="fullName" label="Employee" {...sortProps} />
-          <SortableHeader field="employeeCode" label="Code" {...sortProps} />
-          <PlainHeader>Role</PlainHeader>
-          <PlainHeader>Country</PlainHeader>
-          <SortableHeader field="annualSalary" label="Annual salary" align="right" {...sortProps} />
-          <SortableHeader field="hireDate" label="Hire date" {...sortProps} />
-          <PlainHeader>
-            <span className="visually-hidden">Actions</span>
-          </PlainHeader>
-        </tr>
-      </thead>
-      <tbody>
-        {employees.map((employee) => (
-          <tr key={employee.id}>
-            <PrimaryCell>
-              <Strong>{employee.fullName}</Strong>
-              <Muted>{employee.email}</Muted>
-            </PrimaryCell>
-            <CodeCell data-label="Code">{employee.employeeCode}</CodeCell>
-            <td data-label="Role">
-              {employee.jobTitle}
-              <Muted>{employee.department}</Muted>
-            </td>
-            <td data-label="Country">{countryName(employee.country)}</td>
-            <NumberCell data-label="Annual salary">
-              {formatMoney(employee.annualSalary, employee.currency)}
-              {employee.currency !== 'USD' && (
-                <Muted>≈ {formatMoney(employee.annualSalaryUsd, 'USD')}</Muted>
-              )}
-            </NumberCell>
-            <td data-label="Hire date">{formatDate(employee.hireDate)}</td>
-            <td>
-              <RowActions>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => onEdit(employee)}
-                  aria-label={`Edit ${employee.fullName}`}
-                  title={`Edit ${employee.fullName}`}
-                >
-                  <EditIcon />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghostDanger"
-                  onClick={() => onDelete(employee)}
-                  aria-label={`Delete ${employee.fullName}`}
-                  title={`Delete ${employee.fullName}`}
-                >
-                  <TrashIcon />
-                </Button>
-              </RowActions>
-            </td>
+    // Focusable so keyboard users can scroll it sideways when it's wider than the screen.
+    <TableScroll tabIndex={0} aria-label="Employees table">
+      <Table>
+        <caption className="visually-hidden">Employees</caption>
+        <thead>
+          <tr>
+            <SortableHeader field="fullName" label="Employee" {...sortProps} />
+            <SortableHeader field="employeeCode" label="Code" {...sortProps} />
+            <PlainHeader>Role</PlainHeader>
+            <PlainHeader>Country</PlainHeader>
+            <SortableHeader
+              field="annualSalary"
+              label="Annual salary"
+              align="right"
+              {...sortProps}
+            />
+            <SortableHeader field="hireDate" label="Hire date" {...sortProps} />
+            <ActionsHeader>
+              <span className="visually-hidden">Actions</span>
+            </ActionsHeader>
           </tr>
-        ))}
-      </tbody>
-    </Table>
+        </thead>
+        <tbody>
+          {employees.map((employee) => (
+            <tr key={employee.id}>
+              <PrimaryCell>
+                <Strong>{employee.fullName}</Strong>
+                <Muted>{employee.email}</Muted>
+              </PrimaryCell>
+              <CodeCell data-label="Code">{employee.employeeCode}</CodeCell>
+              <td data-label="Role">
+                {employee.jobTitle}
+                <Muted>{employee.department}</Muted>
+              </td>
+              <td data-label="Country">{countryName(employee.country)}</td>
+              <NumberCell data-label="Annual salary">
+                {formatMoney(employee.annualSalary, employee.currency)}
+                {employee.currency !== 'USD' && (
+                  <Muted>≈ {formatMoney(employee.annualSalaryUsd, 'USD')}</Muted>
+                )}
+              </NumberCell>
+              <td data-label="Hire date">{formatDate(employee.hireDate)}</td>
+              <ActionsCell>
+                <RowActions>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => onEdit(employee)}
+                    aria-label={`Edit ${employee.fullName}`}
+                    title={`Edit ${employee.fullName}`}
+                  >
+                    <EditIcon />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghostDanger"
+                    onClick={() => onDelete(employee)}
+                    aria-label={`Delete ${employee.fullName}`}
+                    title={`Delete ${employee.fullName}`}
+                  >
+                    <TrashIcon />
+                  </Button>
+                </RowActions>
+              </ActionsCell>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    </TableScroll>
   );
 }
 
@@ -187,11 +197,6 @@ const Table = styled.table`
 
   /* Tablet and up: a normal table. */
   ${({ theme }) => theme.media.tablet} {
-    overflow: hidden;
-    border: 1px solid ${({ theme }) => theme.colors.border};
-    border-radius: ${({ theme }) => theme.radii.lg};
-    background: ${({ theme }) => theme.colors.surface};
-
     thead tr {
       display: table-row;
       margin: 0;
@@ -208,7 +213,8 @@ const Table = styled.table`
       border-radius: 0;
     }
 
-    tbody tr:hover {
+    tbody tr:hover,
+    tbody tr:hover > td {
       background: ${({ theme }) => theme.colors.surfaceMuted};
     }
 
@@ -223,6 +229,39 @@ const Table = styled.table`
     tbody td[data-label]::before {
       content: none;
     }
+  }
+`;
+
+/** The card around the table (tablet and up); scrolls sideways when the table is wider than it. */
+const TableScroll = styled.div`
+  ${({ theme }) => theme.media.tablet} {
+    overflow-x: auto;
+    border: 1px solid ${({ theme }) => theme.colors.border};
+    border-radius: ${({ theme }) => theme.radii.lg};
+    background: ${({ theme }) => theme.colors.surface};
+  }
+`;
+
+/** Pinned to the right edge on tablets, over the columns scrolling underneath. */
+const pinnedOnTablet = css`
+  ${({ theme }) => theme.media.tablet} {
+    position: sticky;
+    right: 0;
+    box-shadow: inset 1px 0 0 ${({ theme }) => theme.colors.border};
+  }
+
+  /* Desktop is wide enough for every column: nothing to pin. */
+  ${({ theme }) => theme.media.desktop} {
+    position: static;
+    box-shadow: none;
+  }
+`;
+
+const ActionsCell = styled.td`
+  ${pinnedOnTablet}
+
+  ${({ theme }) => theme.media.tablet} {
+    background: ${({ theme }) => theme.colors.surface};
   }
 `;
 
@@ -249,6 +288,10 @@ const PlainHeader = styled.th.attrs({ scope: 'col' })`
     font-weight: ${({ theme }) => theme.fontWeights.medium};
     text-align: left;
   }
+`;
+
+const ActionsHeader = styled(PlainHeader)`
+  ${pinnedOnTablet}
 `;
 
 const SortButton = styled.button<{ $active: boolean }>`

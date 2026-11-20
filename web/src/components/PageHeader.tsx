@@ -4,7 +4,7 @@ import styled from 'styled-components';
 interface PageHeaderProps {
   title: string;
   description?: string;
-  /** Buttons shown on the right on larger screens, below the title on phones. */
+  /** Buttons shown on the right of the title (keep them compact on phones, e.g. icon-only). */
   actions?: ReactNode;
 }
 
@@ -22,14 +22,13 @@ export function PageHeader({ title, description, actions }: PageHeaderProps) {
 
 const Header = styled.header`
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: ${({ theme }) => theme.spacing.lg};
   margin-bottom: ${({ theme }) => theme.spacing.xl};
 
   ${({ theme }) => theme.media.tablet} {
-    flex-direction: row;
     align-items: flex-end;
-    justify-content: space-between;
   }
 `;
 
@@ -48,6 +47,7 @@ const Description = styled.p`
 
 const Actions = styled.div`
   display: flex;
+  flex-shrink: 0;
   flex-wrap: wrap;
   gap: ${({ theme }) => theme.spacing.sm};
 `;

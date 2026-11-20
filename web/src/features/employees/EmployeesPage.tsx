@@ -9,6 +9,7 @@ import { LoadingState } from '../../components/LoadingState';
 import { PageHeader } from '../../components/PageHeader';
 import { Pagination } from '../../components/Pagination';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import { useScreenSize } from '../../hooks/useScreenSize';
 import { EmployeeFilters } from './EmployeeFilters';
 import { useEmployeeListParams } from './employee-list-params';
 import { EmployeeTable } from './EmployeeTable';
@@ -42,6 +43,7 @@ type OpenDialog =
 
 export function EmployeesPage() {
   const { query, searchText, hasFilters, updateQuery, clearFilters } = useEmployeeListParams();
+  const isPhone = useScreenSize() === 'phone';
   const [openDialog, setOpenDialog] = useState<OpenDialog>({ kind: 'none' });
   // Closing is two steps: the dialog animates out (open = false), then it is removed (onExited).
   const [isDialogClosing, setIsDialogClosing] = useState(false);
@@ -74,9 +76,14 @@ export function EmployeesPage() {
         title="Employees"
         description="Search, filter and manage salaries for everyone at ACME."
         actions={
-          <Button variant="primary" onClick={() => showDialog({ kind: 'add' })}>
+          // Phones: just the + icon (same accessible name), so the title keeps its row.
+          <Button
+            variant="primary"
+            onClick={() => showDialog({ kind: 'add' })}
+            aria-label={isPhone ? 'Add employee' : undefined}
+          >
             <PlusIcon />
-            Add employee
+            {!isPhone && 'Add employee'}
           </Button>
         }
       />

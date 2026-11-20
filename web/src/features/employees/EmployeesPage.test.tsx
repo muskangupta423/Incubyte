@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { renderRoute } from '../../test/render';
+import { setScreenSize } from '../../test/screen-size';
 import { server } from '../../test/server';
 import { employeeApiHandlers, makeEmployee, makeEmployees } from './test-data';
 
@@ -257,5 +258,109 @@ describe('Employees page', () => {
     await user.click(within(alert).getByRole('button', { name: 'Try again' }));
 
     expect(await screen.findByRole('row', { name: /Asha Rao/ })).toBeInTheDocument();
+  });
+});
+
+describe('Employees page on a phone', () => {
+  it('shows a compact + button for adding an employee', async () => {
+    setScreenSize('phone');
+    useFakeApi();
+    renderRoute('/employees');
+
+    const addButton = await screen.findByRole('button', { name: 'Add employee' });
+    expect(addButton).not.toHaveTextContent('Add employee');
+  });
+
+  it('filters from the Filters panel and shows the active filters as removable chips', async () => {
+    setScreenSize('phone');
+    useFakeApi([
+      makeEmployee({ id: 1, fullName: 'Asha Rao', country: 'IN' }),
+      makeEmployee({ id: 2, fullName: 'John Smith', country: 'US', currency: 'USD' }),
+    ]);
+    const { user, router } = renderRoute('/employees');
+    await screen.findByRole('row', { name: /John Smith/ });
+    // The dropdowns live in the panel, not on the page.
+    expect(screen.queryByLabelText('Country')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Filters' }));
+    const panel = await screen.findByRole('dialog', { name: 'Filters' });
+    await user.selectOptions(within(panel).getByLabelText('Country'), 'United States');
+    await user.click(within(panel).getByRole('button', { name: 'Show results' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(router.state.location.search).toBe('?country=US');
+    await waitFor(() => expect(rows()).toHaveLength(1));
+    expect(screen.getByRole('button', { name: 'Filters, 1 active' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Remove Country filter: United States' }));
+
+    expect(router.state.location.search).toBe('');
+    await waitFor(() => expect(rows()).toHaveLength(2));
+    expect(screen.queryByRole('list', { name: 'Active filters' })).not.toBeInTheDocument();
+  });
+
+  it('pages with one slim row: type a page number and press Enter', async () => {
+    setScreenSize('phone');
+    useFakeApi(makeEmployees(60)); // 3 pages of 25
+    const { user, router } = renderRoute('/employees');
+    const pageBox = await screen.findByLabelText('Page');
+    expect(pageBox).toHaveValue(1);
+    expect(screen.queryByLabelText('Rows per page')).not.toBeInTheDocument();
+
+    await user.clear(pageBox);
+    await user.type(pageBox, '3{Enter}');
+
+    expect(await screen.findByText('Showing 51–60 of 60')).toBeInTheDocument();
+    expect(router.state.location.search).toBe('?page=3');
+    expect(screen.getByLabelText('Page')).toHaveValue(3);
+    expect(screen.getByRole('button', { name: 'Next page' })).toBeDisabled();
+  });
+
+  it('explains an out-of-range page number in the slim pagination', async () => {
+    setScreenSize('phone');
+    useFakeApi(makeEmployees(60));
+    const { user, router } = renderRoute('/employees');
+    const pageBox = await screen.findByLabelText('Page');
+
+    await user.clear(pageBox);
+    await user.type(pageBox, '9{Enter}');
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Enter a page from 1 to 3');
+    expect(pageBox).toHaveAccessibleDescription('Enter a page from 1 to 3');
+    expect(router.state.location.search).toBe('');
+  });
+});
+
+describe('Employees page on a tablet', () => {
+  it('replaces the "Clear filters" button with chips and "Clear all"', async () => {
+    setScreenSize('tablet');
+    useFakeApi();
+    const { user, router } = renderRoute('/employees?country=IN&jobTitle=Software%20Engineer');
+    await screen.findByText(/Showing/);
+
+    expect(screen.queryByRole('button', { name: 'Clear filters' })).not.toBeInTheDocument();
+    const chips = within(screen.getByRole('list', { name: 'Active filters' })).getAllByRole(
+      'button',
+    );
+    expect(chips.map((chip) => chip.textContent)).toEqual(['India', 'Software Engineer']);
+
+    await user.click(screen.getByRole('button', { name: 'Clear all' }));
+
+    expect(router.state.location.search).toBe('');
+    expect(screen.queryByRole('list', { name: 'Active filters' })).not.toBeInTheDocument();
+  });
+
+  it('keeps the pagination on one row with shorter labels, but full names for screen readers', async () => {
+    setScreenSize('tablet');
+    useFakeApi(makeEmployees(60));
+    renderRoute('/employees');
+
+    const pagination = await screen.findByRole('navigation', { name: 'Pagination' });
+    expect(within(pagination).getByLabelText('Rows per page')).toBeInTheDocument();
+    expect(within(pagination).getByLabelText('Go to page')).toBeInTheDocument();
+    // "Showing", "per page" and "page" are hidden visually on tablets, not removed.
+    for (const words of ['Showing', 'per page', 'page']) {
+      expect(within(pagination).getByText(words)).toHaveClass('visually-hidden');
+    }
   });
 });

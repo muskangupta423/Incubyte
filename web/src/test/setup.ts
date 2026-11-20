@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll, vi } from 'vitest';
+import { matchMediaForTests, resetScreenSize } from './screen-size';
 import { server } from './server';
 
 // jsdom doesn't implement <dialog>'s showModal()/close() (real browsers do). Minimal test-only stand-ins;
@@ -21,6 +22,9 @@ globalThis.ResizeObserver ??= class {
   disconnect = vi.fn();
 };
 
+// jsdom has no matchMedia; tests render the desktop layout unless they call setScreenSize().
+window.matchMedia = matchMediaForTests;
+
 // Any request without a handler fails the test, so no test silently hits a real network.
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }));
 
@@ -28,6 +32,7 @@ afterEach(() => {
   // Unmount rendered components and remove per-test API handlers so tests stay independent.
   cleanup();
   server.resetHandlers();
+  resetScreenSize();
 });
 
 afterAll(() => server.close());
