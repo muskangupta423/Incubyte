@@ -37,6 +37,7 @@ The main rule: **send the browser only what it shows.**
 | Seed 10,000 employees | 0.06–0.08 s | Local SQLite file, laptop; 20 multi-row INSERTs in one transaction. |
 
 | Check a 10,000-row upload (9,999 updates + 1 error) | 0.06–0.11 s | Local API, laptop, against the 10,000-employee database; ~2.2 MB request. Saves nothing |
+| Export all 10,000 employees | 0.05–0.08 s | Local API, laptop; 2.6 MB JSON (the file is then built in the browser). One country: 0.01 s |
 | Import 10,000 new employees | < 0.4 s | The API test suite does this with an in-memory database (whole test file 0.43 s); one transaction |
 
 ### Live deployment (end to end, as a user feels it)

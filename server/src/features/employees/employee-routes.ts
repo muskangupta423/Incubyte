@@ -1,5 +1,6 @@
 import {
   bulkDeleteEmployeesSchema,
+  employeeExportQuerySchema,
   employeeInputSchema,
   employeeListQuerySchema,
 } from '@acme/shared';
@@ -11,6 +12,7 @@ import {
   createEmployee,
   deleteEmployee,
   deleteEmployees,
+  exportEmployees,
   getEmployee,
   getFilterOptions,
   listEmployees,
@@ -33,6 +35,12 @@ export function createEmployeeRouter(db: Database): Router {
   // Registered before '/:id', otherwise Express would treat "filter-options" as an id.
   router.get('/filter-options', async (_req, res) => {
     res.json(await getFilterOptions(db));
+  });
+
+  // Like filter-options: registered before '/:id'.
+  router.get('/export', async (req, res) => {
+    const query = parseInput(employeeExportQuerySchema, req.query);
+    res.json(await exportEmployees(db, query));
   });
 
   router.get('/:id', async (req, res) => {

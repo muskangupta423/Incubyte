@@ -69,6 +69,16 @@ export function employeeApiHandlers(initialEmployees: Employee[]) {
     annualSalaryUsd: input.annualSalary,
   });
 
+  const matching = (params: URLSearchParams) => {
+    const search = params.get('search')?.toLowerCase();
+    const country = params.get('country');
+    return employees.filter(
+      (employee) =>
+        (!search || employee.fullName.toLowerCase().includes(search)) &&
+        (!country || employee.country === country),
+    );
+  };
+
   const handlers = [
     http.get('*/api/employees/filter-options', () =>
       HttpResponse.json({
@@ -97,26 +107,26 @@ export function employeeApiHandlers(initialEmployees: Employee[]) {
       countries = [...countries, country];
       return HttpResponse.json(country, { status: 201 });
     }),
+    // Like the API, but only search and country filter here (enough for the tests).
+    http.get('*/api/employees/export', ({ request }) => {
+      const params = new URL(request.url).searchParams;
+      requests.push(params);
+      return HttpResponse.json(matching(params));
+    }),
     http.get('*/api/employees', ({ request }) => {
       const params = new URL(request.url).searchParams;
       requests.push(params);
 
-      const search = params.get('search')?.toLowerCase();
-      const country = params.get('country');
       const page = Number(params.get('page') ?? 1);
       const pageSize = Number(params.get('pageSize') ?? 25);
-      const matching = employees.filter(
-        (employee) =>
-          (!search || employee.fullName.toLowerCase().includes(search)) &&
-          (!country || employee.country === country),
-      );
+      const matches = matching(params);
 
       const body: PaginatedResponse<Employee> = {
-        items: matching.slice((page - 1) * pageSize, page * pageSize),
+        items: matches.slice((page - 1) * pageSize, page * pageSize),
         page,
         pageSize,
-        totalItems: matching.length,
-        totalPages: Math.ceil(matching.length / pageSize),
+        totalItems: matches.length,
+        totalPages: Math.ceil(matches.length / pageSize),
       };
       return HttpResponse.json(body);
     }),

@@ -239,3 +239,38 @@ describe('GET /api/employees', () => {
     });
   });
 });
+
+describe('GET /api/employees/export', () => {
+  beforeEach(() => {
+    employee = createEmployeeFactory();
+  });
+
+  it('returns everyone matching the search and filters, in the list order, without paging', async () => {
+    const app = await appWith([
+      ...Array.from({ length: 30 }, (_, index) =>
+        employee({
+          full_name: `Indian ${String(index).padStart(2, '0')}`,
+          country: 'IN',
+          currency: 'INR',
+        }),
+      ),
+      employee({ full_name: 'American', country: 'US' }),
+    ]);
+
+    const response = await request(app).get('/api/employees/export?country=IN&sortOrder=desc');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(30); // more than one page of 25
+    expect(names({ items: response.body })[0]).toBe('Indian 29');
+    expect(response.body[0]).toMatchObject({ country: 'IN', currency: 'INR' });
+  });
+
+  it('rejects invalid filters, like the list does', async () => {
+    const app = await appWith([employee()]);
+
+    const response = await request(app).get('/api/employees/export?sortBy=password');
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.details[0].field).toBe('sortBy');
+  });
+});

@@ -62,6 +62,7 @@ Each layer only talks to the one below it. This keeps business logic **easy to u
 │       │   ├── dashboard/    insights page, charts, API hooks
 │       │   ├── countries/    "Add a country" dialog, countries API hooks
 │       │   ├── employee-import/  upload dialog, spreadsheet reading, template download
+│       │   ├── employee-export/  export dialog, writing .xlsx / .csv
 │       │   └── compensation/ salary breakdown editor (Phase 2)
 │       ├── services/         HTTP client (one place for fetch + error handling)
 │       ├── theme/            design tokens (colors, spacing, typography...) + global styles
@@ -165,8 +166,8 @@ erDiagram
 | POST | `/api/countries` | Set up a country: `{ "code": "KE", "usdRate": 0.0077 }`; the rate is required only if no country uses that currency yet; 409 if already set up |
 | POST | `/api/employees/import/check` | Bulk upload, step 1: `{ "rows": [{ "rowNumber": 2, "fullName": …, … }] }` (up to 10,000) → how many would be added / updated, or each problem as *row · column · message*. Saves nothing |
 | POST | `/api/employees/import` | Bulk upload, step 2: same body → checks again and saves **all rows in one transaction**, or nothing (400 with the problems). New rows get consecutive codes; rows with a code update that employee |
+| GET | `/api/employees/export?search=&country=&department=&jobTitle=&sortBy=&sortOrder=` | Everyone matching the list's search and filters, in its order, without paging (up to 10,000). The browser turns it into .xlsx / .csv |
 | **Phase 2 (not built yet)** | | |
-| GET | `/api/employees/export?format=xlsx\|csv&...filters` | Download the current filtered list |
 | GET | `/api/employees/:id/components` | Salary breakdown of one employee |
 | PUT | `/api/employees/:id/components` | Replace the whole breakdown (validated: amounts > 0, unique names, sum = annual salary) |
 

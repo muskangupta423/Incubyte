@@ -1,6 +1,8 @@
 import {
+  MAX_EXPORT_ROWS,
   type BulkDeleteResult,
   type Employee,
+  type EmployeeExportQuery,
   type EmployeeFilterOptions,
   type EmployeeInput,
   type EmployeeListQuery,
@@ -14,6 +16,7 @@ import {
   deleteEmployees as deleteEmployeeRows,
   DuplicateValueError,
   findEmployeeById,
+  findEmployees,
   findEmployeePage,
   findFilterOptions,
   insertEmployee,
@@ -33,6 +36,14 @@ export async function listEmployees(
     totalItems,
     totalPages: Math.ceil(totalItems / query.pageSize),
   };
+}
+
+/** Everyone matching the search and filters (exports), capped so one response stays small. */
+export async function exportEmployees(
+  db: Database,
+  query: EmployeeExportQuery,
+): Promise<Employee[]> {
+  return findEmployees(db, query, MAX_EXPORT_ROWS);
 }
 
 export async function getFilterOptions(db: Database): Promise<EmployeeFilterOptions> {

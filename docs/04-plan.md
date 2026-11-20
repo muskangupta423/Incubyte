@@ -22,8 +22,8 @@ so the git history shows how the solution evolved.
 | | **Phase 2 — Moving off Excel** | |
 | 13 | ✅ Import API: row-level validation and a check step (`/import/check`) — the browser reads the file (see D7aj) | Unit tests for row rules; API tests for every kind of row error |
 | 14 | ✅ Import API: save in one transaction, add-or-update by `employee_code`; template download (built in the browser) | API tests: all-or-nothing, consecutive codes, a 10,000-row file |
-| 15 | Export API: filtered list as .xlsx / .csv | API test checks columns & row count |
-| 16 | ✅ Web: Import dialog (template → choose file → check / problems → import); Export button still to do | Tests upload real .xlsx and .csv files |
+| 15 | ✅ Export API: the filtered list without paging (the browser writes .xlsx / .csv) | API tests: filters and order kept, more than one page returned |
+| 16 | ✅ Web: Import dialog (template → choose file → check / problems → import) and Export dialog (Excel or CSV) | Tests upload real files, read back downloaded ones, and check export → upload round trip |
 | 17 | Salary components API: table, GET / PUT breakdown, "must add up to annual salary" rule; seed a breakdown for some employees | Unit tests for the sum rule; API tests |
 | 18 | Web: "Salary breakdown" section on the employee form (add / remove rows, live total vs. annual salary) | Component tests pass |
 | 19 | Redeploy, README polish, screenshots, video demo, AI usage notes | Submission ready |

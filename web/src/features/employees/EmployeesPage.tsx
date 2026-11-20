@@ -9,7 +9,7 @@ import styled from 'styled-components';
 import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
-import { PlusIcon, UploadIcon } from '../../components/icons';
+import { DownloadIcon, PlusIcon, UploadIcon } from '../../components/icons';
 import { LoadingState } from '../../components/LoadingState';
 import { PageHeader } from '../../components/PageHeader';
 import { Pagination } from '../../components/Pagination';
@@ -36,7 +36,12 @@ const BulkDeleteEmployeesDialog = lazy(() =>
     default: module.BulkDeleteEmployeesDialog,
   })),
 );
-// Also brings the spreadsheet library, so it is only downloaded when someone uploads.
+// These two also bring the spreadsheet library, so it is only downloaded when it is needed.
+const ExportEmployeesDialog = lazy(() =>
+  import('../employee-export/ExportEmployeesDialog').then((module) => ({
+    default: module.ExportEmployeesDialog,
+  })),
+);
 const ImportEmployeesDialog = lazy(() =>
   import('../employee-import/ImportEmployeesDialog').then((module) => ({
     default: module.ImportEmployeesDialog,
@@ -61,7 +66,8 @@ type OpenDialog =
   | { kind: 'edit'; employee: Employee }
   | { kind: 'delete'; employee: Employee }
   | { kind: 'bulkDelete'; employees: Employee[] }
-  | { kind: 'import' };
+  | { kind: 'import' }
+  | { kind: 'export' };
 
 export function EmployeesPage() {
   const { query, searchText, hasFilters, updateQuery, clearFilters } = useEmployeeListParams();
@@ -109,6 +115,13 @@ export function EmployeesPage() {
         actions={
           // Phones: icons only (same accessible names), so the title keeps its row.
           <>
+            <Button
+              onClick={() => showDialog({ kind: 'export' })}
+              aria-label={isPhone ? 'Export employees' : undefined}
+            >
+              <DownloadIcon />
+              {!isPhone && 'Export'}
+            </Button>
             <Button
               onClick={() => showDialog({ kind: 'import' })}
               aria-label={isPhone ? 'Upload employees' : undefined}
@@ -166,6 +179,13 @@ export function EmployeesPage() {
           />
         )}
         {openDialog.kind === 'import' && <ImportEmployeesDialog {...dialogVisibility} />}
+        {openDialog.kind === 'export' && (
+          <ExportEmployeesDialog
+            query={resultsQuery}
+            hasFilters={hasFilters}
+            {...dialogVisibility}
+          />
+        )}
       </Suspense>
     </>
   );

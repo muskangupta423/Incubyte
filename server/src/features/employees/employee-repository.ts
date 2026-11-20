@@ -1,5 +1,6 @@
 import type {
   Employee,
+  EmployeeExportQuery,
   EmployeeFilterOptions,
   EmployeeInput,
   EmployeeListQuery,
@@ -61,8 +62,6 @@ export async function findEmployeePage(
   query: EmployeeListQuery,
 ): Promise<EmployeePage> {
   const { whereSql, args } = buildEmployeeFilters(query);
-  const direction = query.sortOrder === 'desc' ? 'DESC' : 'ASC';
-  const orderSql = SORT_COLUMNS[query.sortBy].map((column) => `${column} ${direction}`).join(', ');
   const offset = (query.page - 1) * query.pageSize;
 
   // Both queries in one read batch: a single round trip and a consistent snapshot
@@ -75,9 +74,8 @@ export async function findEmployeePage(
               FROM employees e
               JOIN exchange_rates r ON r.currency = e.currency
               ${whereSql}
-              ORDER BY ${orderSql}, e.id ASC
+              ORDER BY ${orderBy(query)}
               LIMIT ? OFFSET ?`,
-        // e.id as tie-breaker: rows with equal values keep a stable order across pages.
         args: [...args, query.pageSize, offset],
       },
     ],
@@ -88,6 +86,31 @@ export async function findEmployeePage(
     totalItems: Number(countResult?.rows[0]?.total ?? 0),
     employees: (pageResult?.rows ?? []).map(toEmployee),
   };
+}
+
+/** Everyone matching the search and filters, in the list's order, up to `limit` rows (exports). */
+export async function findEmployees(
+  db: Database,
+  query: EmployeeExportQuery,
+  limit: number,
+): Promise<Employee[]> {
+  const { whereSql, args } = buildEmployeeFilters(query);
+  const result = await db.execute({
+    sql: `SELECT ${EMPLOYEE_COLUMNS}
+          FROM employees e
+          JOIN exchange_rates r ON r.currency = e.currency
+          ${whereSql}
+          ORDER BY ${orderBy(query)}
+          LIMIT ?`,
+    args: [...args, limit],
+  });
+  return result.rows.map(toEmployee);
+}
+
+/** ORDER BY from the whitelisted sort columns, with e.id as tie-breaker: equal values keep a stable order. */
+function orderBy({ sortBy, sortOrder }: Pick<EmployeeListQuery, 'sortBy' | 'sortOrder'>): string {
+  const direction = sortOrder === 'desc' ? 'DESC' : 'ASC';
+  return [...SORT_COLUMNS[sortBy].map((column) => `${column} ${direction}`), 'e.id ASC'].join(', ');
 }
 
 /**

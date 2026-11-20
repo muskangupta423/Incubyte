@@ -57,6 +57,17 @@ export const employeeListQuerySchema = z.object({
 
 export type EmployeeListQuery = z.infer<typeof employeeListQuerySchema>;
 
+/** Most rows one export holds: the same as one upload, so an exported file can be uploaded back. */
+export const MAX_EXPORT_ROWS = 10_000;
+
+/** Query for GET /api/employees/export: the list's search, filters and sort, without paging. */
+export const employeeExportQuerySchema = employeeListQuerySchema.omit({
+  page: true,
+  pageSize: true,
+});
+
+export type EmployeeExportQuery = z.infer<typeof employeeExportQuerySchema>;
+
 export const MAX_ANNUAL_SALARY = 1_000_000_000;
 const MAX_TEXT_LENGTH = 100;
 
