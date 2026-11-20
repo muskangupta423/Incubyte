@@ -8,7 +8,7 @@ The main rule: **send the browser only what it shows.**
 | Showing 10,000 rows | **Server-side pagination** (e.g. 25 rows per page). The browser never holds the full list. |
 | Search / filters / sorting | Done in **SQL** with `WHERE` / `ORDER BY` / `LIMIT` / `OFFSET`. |
 | Search typing | **Debounced** (≈300 ms) so we don't fire a request on every keystroke. |
-| Fast filters & grouping | **Indexes** on `country`, `department`, `job_title`, `(country, job_title)`, `annual_salary`; unique on `email` and `employee_code`. |
+| Fast filters & grouping | **Indexes** on `(country, job_title)` (also covers country-only filters), `department`, `job_title`, `annual_salary`; unique on `email` and `employee_code`. |
 | Insights | **Aggregated in SQL** (`COUNT`, `SUM`, `AVG`, `MIN`, `MAX`, `GROUP BY`). Only small summary tables go over the network. |
 | Median | SQLite has no `MEDIAN`. We fetch only the **sorted salary column** for the group and pick the middle value in the service — cheap for 10k numbers and easy to unit test. |
 | Currency conversion | Join with the small `exchange_rates` table inside the query; no per-row work in JavaScript. |

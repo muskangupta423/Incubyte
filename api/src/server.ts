@@ -1,8 +1,11 @@
 import { createApp } from './app';
+import { config } from './config';
+import { openDatabase } from './db/client';
+import { migrate } from './db/migrate';
 
-const DEFAULT_PORT = 3001;
-const port = Number(process.env.PORT ?? DEFAULT_PORT);
+const db = await openDatabase(config.database);
+await migrate(db);
 
-createApp().listen(port, () => {
-  console.log(`API listening on http://localhost:${port}`);
+createApp().listen(config.port, () => {
+  console.log(`API listening on http://localhost:${config.port}`);
 });

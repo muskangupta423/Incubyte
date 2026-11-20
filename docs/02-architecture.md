@@ -119,7 +119,16 @@ erDiagram
   Only earnings are stored; deductions such as PF and TDS are out of scope.
 
 - Salary stored as an **integer** (no floating-point rounding issues for money).
-- Indexes on `country`, `department`, `job_title`, `(country, job_title)` and `annual_salary` for fast filters and insights.
+- Indexes on `(country, job_title)`, `department`, `job_title` and `annual_salary` for fast filters and insights.
+  A separate `country` index is not needed: the `(country, job_title)` index already serves country-only lookups.
+  The separate `job_title` index *is* needed: a two-column index only helps when the search starts with its
+  **first** column, so filtering by job title alone (across all countries) would otherwise scan every row.
+  Verified with `EXPLAIN QUERY PLAN`: `SEARCH ... USING INDEX idx_employees_job_title` vs. `SCAN employees USING ... idx_employees_country_job_title` (reads every entry) without it.
+- Tables are **STRICT** (SQLite rejects wrong types instead of silently storing them), with `CHECK` rules
+  (salary > 0, non-blank name), unique `employee_code` and case-insensitive unique `email`,
+  and a foreign key from `currency` to `exchange_rates`.
+- Schema statements are idempotent (`IF NOT EXISTS`) and run in one all-or-nothing batch on server start.
+  A versioned migration tool would be added once the schema needs to change after go-live.
 
 ## 5. API
 
