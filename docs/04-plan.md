@@ -1,0 +1,33 @@
+# Build Plan
+
+We build in **small vertical steps**. Each step ends with passing tests and a commit,
+so the git history shows how the solution evolved.
+
+| Step | What | Done when |
+|------|------|-----------|
+| | **Phase 1 — Core product** | |
+| 0 | Artifacts: requirements, architecture, decisions, plan, performance, AI usage | Docs committed before code |
+| 1 | Project setup: npm workspaces, TypeScript, Vitest, lint/format for `api/` and `web/` | `npm test` runs (empty) in both |
+| 2 | Database: schema, migrations, connection, exchange-rate table | Integration test creates schema in-memory |
+| 3 | Seed script: 10,000 deterministic employees across countries, departments, roles | `npm run seed` fills DB; test checks count & determinism |
+| 4 | Employees API: list (pagination, search, filters, sort) | API tests pass |
+| 5 | Employees API: create / update / delete with validation | API + unit tests pass |
+| 6 | Insights services & API: summary, by country, by job title, by department, distribution | Unit tests for stats math + API tests |
+| 7 | Web: app shell, routing, API client, Employees page (DataGrid, server-side) | Component tests pass; works against local API |
+| 8 | Web: add / edit / delete employee form | Form validation tests pass |
+| 9 | Web: Insights dashboard (cards + charts + country/job-title drill-down) | Renders with real data |
+| 10 | Deploy: Turso DB + Vercel (api + web); seed production DB | Public URL works |
+| | **Phase 2 — Moving off Excel** | |
+| 11 | Import API: parse .xlsx / .csv, row-level validation, dry-run preview | Unit tests for parsing & row errors; API tests |
+| 12 | Import API: save in one transaction, add-or-update by `employee_code`; template download | API tests: all-or-nothing, re-import creates no duplicates |
+| 13 | Export API: filtered list as .xlsx / .csv | API test checks columns & row count |
+| 14 | Web: Import dialog (upload → preview → errors / confirm) and Export button | Component tests pass |
+| 15 | Salary components API: table, GET / PUT breakdown, "must add up to annual salary" rule; seed a breakdown for some employees | Unit tests for the sum rule; API tests |
+| 16 | Web: "Salary breakdown" section on the employee form (add / remove rows, live total vs. annual salary) | Component tests pass |
+| 17 | Redeploy, README polish, screenshots, video demo, AI usage notes | Submission ready |
+
+## Definition of done (every step)
+
+- Tests pass and are fast.
+- Code is readable: small functions, clear names, no dead code.
+- Commit message explains *what* and *why*.
