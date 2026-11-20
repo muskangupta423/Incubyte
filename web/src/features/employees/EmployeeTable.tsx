@@ -19,6 +19,9 @@ interface EmployeeTableProps {
   onSortChange: (sortBy: EmployeeSortField) => void;
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
+  /** Ticked rows, for bulk actions (they may include rows on other pages). */
+  isSelected: (id: number) => boolean;
+  onSelectionChange: (employees: Employee[], isSelected: boolean) => void;
 }
 
 /**
@@ -34,8 +37,12 @@ export function EmployeeTable({
   onSortChange,
   onEdit,
   onDelete,
+  isSelected,
+  onSelectionChange,
 }: EmployeeTableProps) {
   const sortProps = { sortBy, sortOrder, onSortChange };
+  const selectedOnPage = employees.filter((employee) => isSelected(employee.id)).length;
+  const allSelected = employees.length > 0 && selectedOnPage === employees.length;
 
   return (
     // Focusable so keyboard users can scroll it sideways when it's wider than the screen.
@@ -44,6 +51,21 @@ export function EmployeeTable({
         <caption className="visually-hidden">Employees</caption>
         <thead>
           <tr>
+            <SelectHeader scope="col">
+              <SelectAllLabel>
+                <Checkbox
+                  type="checkbox"
+                  checked={allSelected}
+                  // "Some but not all": shown as a dash. Only settable from script, not from HTML.
+                  ref={(checkbox) => {
+                    if (checkbox) checkbox.indeterminate = selectedOnPage > 0 && !allSelected;
+                  }}
+                  onChange={(event) => onSelectionChange(employees, event.target.checked)}
+                  aria-label="Select all employees on this page"
+                />
+                <SelectAllText aria-hidden>Select all</SelectAllText>
+              </SelectAllLabel>
+            </SelectHeader>
             <SortableHeader field="fullName" label="Employee" {...sortProps} />
             <SortableHeader field="employeeCode" label="Code" {...sortProps} />
             <PlainHeader>Role</PlainHeader>
@@ -61,49 +83,60 @@ export function EmployeeTable({
           </tr>
         </thead>
         <tbody>
-          {employees.map((employee) => (
-            <tr key={employee.id}>
-              <PrimaryCell>
-                <Strong>{employee.fullName}</Strong>
-                <Muted>{employee.email}</Muted>
-              </PrimaryCell>
-              <CodeCell data-label="Code">{employee.employeeCode}</CodeCell>
-              <td data-label="Role">
-                {employee.jobTitle}
-                <Muted>{employee.department}</Muted>
-              </td>
-              <td data-label="Country">{countryName(employee.country)}</td>
-              <NumberCell data-label="Annual salary">
-                {formatMoney(employee.annualSalary, employee.currency)}
-                {employee.currency !== 'USD' && (
-                  <Muted>≈ {formatMoney(employee.annualSalaryUsd, 'USD')}</Muted>
-                )}
-              </NumberCell>
-              <td data-label="Hire date">{formatDate(employee.hireDate)}</td>
-              <ActionsCell>
-                <RowActions>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => onEdit(employee)}
-                    aria-label={`Edit ${employee.fullName}`}
-                    title={`Edit ${employee.fullName}`}
-                  >
-                    <EditIcon />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghostDanger"
-                    onClick={() => onDelete(employee)}
-                    aria-label={`Delete ${employee.fullName}`}
-                    title={`Delete ${employee.fullName}`}
-                  >
-                    <TrashIcon />
-                  </Button>
-                </RowActions>
-              </ActionsCell>
-            </tr>
-          ))}
+          {employees.map((employee) => {
+            const isRowSelected = isSelected(employee.id);
+            return (
+              <tr key={employee.id} data-selected={isRowSelected || undefined}>
+                <SelectCell>
+                  <Checkbox
+                    type="checkbox"
+                    checked={isRowSelected}
+                    onChange={(event) => onSelectionChange([employee], event.target.checked)}
+                    aria-label={`Select ${employee.fullName}`}
+                  />
+                </SelectCell>
+                <PrimaryCell>
+                  <Strong>{employee.fullName}</Strong>
+                  <Muted>{employee.email}</Muted>
+                </PrimaryCell>
+                <CodeCell data-label="Code">{employee.employeeCode}</CodeCell>
+                <td data-label="Role">
+                  {employee.jobTitle}
+                  <Muted>{employee.department}</Muted>
+                </td>
+                <td data-label="Country">{countryName(employee.country)}</td>
+                <NumberCell data-label="Annual salary">
+                  {formatMoney(employee.annualSalary, employee.currency)}
+                  {employee.currency !== 'USD' && (
+                    <Muted>≈ {formatMoney(employee.annualSalaryUsd, 'USD')}</Muted>
+                  )}
+                </NumberCell>
+                <td data-label="Hire date">{formatDate(employee.hireDate)}</td>
+                <ActionsCell>
+                  <RowActions>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onEdit(employee)}
+                      aria-label={`Edit ${employee.fullName}`}
+                      title={`Edit ${employee.fullName}`}
+                    >
+                      <EditIcon />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghostDanger"
+                      onClick={() => onDelete(employee)}
+                      aria-label={`Delete ${employee.fullName}`}
+                      title={`Delete ${employee.fullName}`}
+                    >
+                      <TrashIcon />
+                    </Button>
+                  </RowActions>
+                </ActionsCell>
+              </tr>
+            );
+          })}
         </tbody>
       </Table>
     </TableScroll>
@@ -187,8 +220,17 @@ const Table = styled.table`
     font-size: ${({ theme }) => theme.fontSizes.xs};
   }
 
-  tbody td:first-child {
+  tbody tr {
+    position: relative;
+  }
+
+  /* Cards start with the name (cell 2): cell 1, the checkbox, sits in the card's top-right corner. */
+  tbody td:nth-child(2) {
     padding-top: ${({ theme }) => theme.spacing.lg};
+  }
+
+  tbody tr[data-selected] {
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 
   tbody td:last-child {
@@ -214,12 +256,13 @@ const Table = styled.table`
     }
 
     tbody tr:hover,
-    tbody tr:hover > td {
+    tbody tr:hover > td,
+    tbody tr[data-selected] > td {
       background: ${({ theme }) => theme.colors.surfaceMuted};
     }
 
     tbody td,
-    tbody td:first-child,
+    tbody td:nth-child(2),
     tbody td:last-child {
       display: table-cell;
       padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.lg};
@@ -262,6 +305,74 @@ const ActionsCell = styled.td`
 
   ${({ theme }) => theme.media.tablet} {
     background: ${({ theme }) => theme.colors.surface};
+  }
+`;
+
+const Checkbox = styled.input`
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  accent-color: ${({ theme }) => theme.colors.primary};
+  cursor: pointer;
+`;
+
+/** Phones: top-right corner of the card. Tablet and up: a narrow first column. */
+const SelectCell = styled.td`
+  && {
+    position: absolute;
+    top: ${({ theme }) => theme.spacing.lg};
+    right: ${({ theme }) => theme.spacing.lg};
+    padding: 0;
+  }
+
+  ${({ theme }) => theme.media.tablet} {
+    && {
+      position: static;
+      width: 1%;
+      /* Lines the box up with the first line of the name next to it. */
+      padding-top: calc(${({ theme }) => theme.spacing.md} + 0.1875rem);
+      padding-right: 0;
+      padding-left: ${({ theme }) => theme.spacing.lg};
+    }
+  }
+`;
+
+const SelectHeader = styled.th`
+  display: flex;
+  align-items: center;
+
+  ${({ theme }) => theme.media.tablet} {
+    display: table-cell;
+    width: 1%;
+    padding: ${({ theme }) => theme.spacing.sm} 0 ${({ theme }) => theme.spacing.sm}
+      ${({ theme }) => theme.spacing.lg};
+    background: ${({ theme }) => theme.colors.surfaceMuted};
+    vertical-align: middle;
+  }
+`;
+
+const SelectAllLabel = styled.label`
+  display: inline-flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
+  min-height: ${({ theme }) => theme.layout.controlHeightSmall};
+  padding: 0 ${({ theme }) => theme.spacing.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.pill};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  cursor: pointer;
+
+  ${({ theme }) => theme.media.tablet} {
+    min-height: 0;
+    padding: 0;
+    border: none;
+  }
+`;
+
+/** Phones show the words next to the box (no column header there); tables don't need them. */
+const SelectAllText = styled.span`
+  ${({ theme }) => theme.media.tablet} {
+    display: none;
   }
 `;
 

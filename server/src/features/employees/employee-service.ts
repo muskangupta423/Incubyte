@@ -1,5 +1,6 @@
 import {
   COUNTRIES,
+  type BulkDeleteResult,
   type Employee,
   type EmployeeFilterOptions,
   type EmployeeInput,
@@ -10,6 +11,7 @@ import type { Database } from '../../db/client';
 import { ConflictError, NotFoundError } from '../../http/errors';
 import {
   deleteEmployee as deleteEmployeeRow,
+  deleteEmployees as deleteEmployeeRows,
   DuplicateValueError,
   findEmployeeById,
   findEmployeePage,
@@ -57,6 +59,17 @@ export async function updateEmployee(
 export async function deleteEmployee(db: Database, id: number): Promise<void> {
   const deleted = await deleteEmployeeRow(db, id);
   if (!deleted) throwNotFound(id);
+}
+
+/**
+ * Deletes the selected employees together. Ids that no longer exist are not an error — someone may
+ * have deleted them already — the result says how many were actually deleted.
+ */
+export async function deleteEmployees(
+  db: Database,
+  ids: readonly number[],
+): Promise<BulkDeleteResult> {
+  return { deletedCount: await deleteEmployeeRows(db, ids) };
 }
 
 /** Business rule: an employee is always paid in their country's currency. */

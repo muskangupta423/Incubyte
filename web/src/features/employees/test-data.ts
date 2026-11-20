@@ -1,4 +1,5 @@
 import {
+  bulkDeleteEmployeesSchema,
   COUNTRIES,
   isCountryCode,
   type Employee,
@@ -49,7 +50,7 @@ const filterOptions: EmployeeFilterOptions = {
 export function employeeApiHandlers(initialEmployees: Employee[]) {
   let employees = [...initialEmployees];
   const requests: URLSearchParams[] = [];
-  const changes: { method: string; id?: number; body?: EmployeeInput }[] = [];
+  const changes: { method: string; id?: number; ids?: number[]; body?: EmployeeInput }[] = [];
 
   const toEmployee = (id: number, employeeCode: string, input: EmployeeInput): Employee => ({
     ...input,
@@ -106,6 +107,13 @@ export function employeeApiHandlers(initialEmployees: Employee[]) {
       changes.push({ method: 'DELETE', id });
       employees = employees.filter((employee) => employee.id !== id);
       return new HttpResponse(null, { status: 204 });
+    }),
+    http.post('*/api/employees/bulk-delete', async ({ request }) => {
+      const { ids } = bulkDeleteEmployeesSchema.parse(await request.json());
+      changes.push({ method: 'BULK_DELETE', ids });
+      const before = employees.length;
+      employees = employees.filter((employee) => !ids.includes(employee.id));
+      return HttpResponse.json({ deletedCount: before - employees.length });
     }),
   ];
 

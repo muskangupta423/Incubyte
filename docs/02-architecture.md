@@ -143,6 +143,7 @@ erDiagram
 | POST | `/api/employees` | Create |
 | PUT | `/api/employees/:id` | Update |
 | DELETE | `/api/employees/:id` | Delete |
+| POST | `/api/employees/bulk-delete` | Delete several: body `{ "ids": [1, 2, …] }` (1–500), one statement so all or nothing; returns `{ "deletedCount" }` (ids already gone are skipped) |
 | GET | `/api/insights/summary` | Headcount, total payroll, min / median / average / max (USD), exchange-rate date |
 | GET | `/api/insights/by-country` | Stats per country (local currency + USD) |
 | GET | `/api/insights/by-job-title` | Stats per job title — across all countries, or in one with `?country=` |

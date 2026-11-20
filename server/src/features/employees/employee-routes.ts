@@ -1,4 +1,8 @@
-import { employeeInputSchema, employeeListQuerySchema } from '@acme/shared';
+import {
+  bulkDeleteEmployeesSchema,
+  employeeInputSchema,
+  employeeListQuerySchema,
+} from '@acme/shared';
 import { Router } from 'express';
 import { z } from 'zod';
 import type { Database } from '../../db/client';
@@ -6,6 +10,7 @@ import { parseInput } from '../../http/validation';
 import {
   createEmployee,
   deleteEmployee,
+  deleteEmployees,
   getEmployee,
   getFilterOptions,
   listEmployees,
@@ -39,6 +44,12 @@ export function createEmployeeRouter(db: Database): Router {
     const input = parseInput(employeeInputSchema, req.body);
     const employee = await createEmployee(db, input);
     res.status(201).location(`${req.baseUrl}/${employee.id}`).json(employee);
+  });
+
+  // POST, not DELETE: a list of ids belongs in a request body, which DELETE requests don't reliably carry.
+  router.post('/bulk-delete', async (req, res) => {
+    const { ids } = parseInput(bulkDeleteEmployeesSchema, req.body);
+    res.json(await deleteEmployees(db, ids));
   });
 
   router.put('/:id', async (req, res) => {

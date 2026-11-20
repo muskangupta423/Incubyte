@@ -1,4 +1,5 @@
 import type {
+  BulkDeleteResult,
   Employee,
   EmployeeFilterOptions,
   EmployeeInput,
@@ -25,4 +26,9 @@ export function updateEmployee(id: number, input: EmployeeInput) {
 
 export function deleteEmployee(id: number) {
   return apiRequest<undefined>(`/employees/${id}`, { method: 'DELETE' });
+}
+
+/** Deletes several employees in one request (and one database transaction). */
+export function deleteEmployees(ids: readonly number[]) {
+  return apiRequest<BulkDeleteResult>('/employees/bulk-delete', { method: 'POST', body: { ids } });
 }

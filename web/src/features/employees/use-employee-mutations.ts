@@ -1,6 +1,6 @@
 import type { EmployeeInput } from '@acme/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createEmployee, deleteEmployee, updateEmployee } from './employees-api';
+import { createEmployee, deleteEmployee, deleteEmployees, updateEmployee } from './employees-api';
 
 /**
  * After any change, mark all cached server data as outdated: the employee list, filter options
@@ -27,4 +27,9 @@ export function useUpdateEmployee() {
 export function useDeleteEmployee() {
   const refresh = useRefreshEmployeesOnSuccess();
   return useMutation({ mutationFn: deleteEmployee, onSuccess: refresh });
+}
+
+export function useDeleteEmployees() {
+  const refresh = useRefreshEmployeesOnSuccess();
+  return useMutation({ mutationFn: deleteEmployees, onSuccess: refresh });
 }

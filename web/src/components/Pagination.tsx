@@ -17,7 +17,7 @@ interface PaginationProps {
 }
 
 /**
- * Sticks to the bottom of the screen, so paging never needs a scroll to the end of a long table.
+ * Meant to sit in a sticky footer (see EmployeesPage), so paging never needs a scroll to the end.
  * Tablet/desktop: one row with the summary, rows per page, "Go to page" and the page buttons.
  * Phones: one slim row, ‹ Page [3] of 400 ›, where the page number is the "go to page" box.
  */
@@ -255,16 +255,12 @@ const JumpError = styled.span`
 `;
 
 const Bar = styled.nav`
-  position: sticky;
-  bottom: 0;
-  z-index: ${({ theme }) => theme.zIndex.header};
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   /* Phones: tighter, so ‹ Page [3] of 400 › fits one row even on a 320px screen. */
   gap: ${({ theme }) => theme.spacing.sm};
-  margin-top: ${({ theme }) => theme.spacing.lg};
   padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.lg};

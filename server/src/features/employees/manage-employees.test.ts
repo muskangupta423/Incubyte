@@ -302,3 +302,63 @@ describe('DELETE /api/employees/:id', () => {
     expect(response.status).toBe(404);
   });
 });
+
+describe('POST /api/employees/bulk-delete', () => {
+  const namesIn = async (app: Parameters<typeof request>[0]) =>
+    ((await request(app).get('/api/employees')).body.items as { fullName: string }[]).map(
+      (item) => item.fullName,
+    );
+
+  it('deletes all the selected employees and leaves the others', async () => {
+    const { app } = await createAppWith([
+      employee({ full_name: 'Ann' }),
+      employee({ full_name: 'Ben' }),
+      employee({ full_name: 'Cy' }),
+      employee({ full_name: 'Di' }),
+    ]);
+
+    const response = await request(app)
+      .post('/api/employees/bulk-delete')
+      .send({ ids: [1, 3] });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ deletedCount: 2 });
+    expect(await namesIn(app)).toEqual(['Ben', 'Di']);
+  });
+
+  it('skips employees that no longer exist and reports how many were deleted', async () => {
+    const { app } = await createAppWith([employee(), employee()]);
+
+    const response = await request(app)
+      .post('/api/employees/bulk-delete')
+      .send({ ids: [1, 999] });
+
+    expect(response.body).toEqual({ deletedCount: 1 });
+    expect((await request(app).get('/api/employees')).body.totalItems).toBe(1);
+  });
+
+  it('deletes an employee once when their id is sent twice', async () => {
+    const { app } = await createAppWith([employee(), employee()]);
+
+    const response = await request(app)
+      .post('/api/employees/bulk-delete')
+      .send({ ids: [2, 2] });
+
+    expect(response.body).toEqual({ deletedCount: 1 });
+  });
+
+  it.each([
+    ['no ids', [], 'ids'],
+    ['more than 500 ids', Array.from({ length: 501 }, (_, index) => index + 1), 'ids'],
+    ['an id that is not a positive whole number', [1, 0], 'ids.1'],
+    ['an id sent as text', ['1'], 'ids.0'],
+  ])('rejects %s with a 400 naming the field, deleting nothing', async (_case, ids, field) => {
+    const { app } = await createAppWith([employee()]);
+
+    const response = await request(app).post('/api/employees/bulk-delete').send({ ids });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.details).toEqual([{ field, message: expect.any(String) }]);
+    expect((await request(app).get('/api/employees')).body.totalItems).toBe(1);
+  });
+});

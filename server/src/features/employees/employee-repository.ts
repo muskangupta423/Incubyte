@@ -159,6 +159,16 @@ export async function deleteEmployee(db: Database, id: number): Promise<boolean>
   return result.rowsAffected > 0;
 }
 
+/** Deletes every employee in `ids` in one statement (so all or nothing); returns how many existed. */
+export async function deleteEmployees(db: Database, ids: readonly number[]): Promise<number> {
+  const placeholders = ids.map(() => '?').join(', ');
+  const result = await db.execute({
+    sql: `DELETE FROM employees WHERE id IN (${placeholders})`,
+    args: [...ids],
+  });
+  return result.rowsAffected;
+}
+
 function selectEmployeeWhere(condition: string, args: InValue[]): InStatement {
   return {
     sql: `SELECT ${EMPLOYEE_COLUMNS}

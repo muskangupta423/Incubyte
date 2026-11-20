@@ -92,3 +92,25 @@ export type EmployeeInput = z.infer<typeof employeeInputSchema>;
 
 /** What a form holds before validation (e.g. country may still be lower-case or empty). */
 export type EmployeeInputDraft = z.input<typeof employeeInputSchema>;
+
+/**
+ * Most employees one bulk delete may remove. People can be ticked across pages, so this is larger
+ * than a page; it still keeps one request (and its single SQL statement) small.
+ */
+export const MAX_BULK_DELETE = 500;
+
+export const bulkDeleteEmployeesSchema = z.object({
+  ids: z
+    .array(z.number().int().positive(), 'Send the ids of the employees to delete')
+    .min(1, 'Select at least one employee to delete')
+    .max(MAX_BULK_DELETE, `Delete at most ${MAX_BULK_DELETE} employees at a time`)
+    // The same id twice is harmless: delete it once.
+    .transform((ids) => [...new Set(ids)]),
+});
+
+export type BulkDeleteEmployeesInput = z.infer<typeof bulkDeleteEmployeesSchema>;
+
+export interface BulkDeleteResult {
+  /** How many were actually deleted: ids that no longer exist (e.g. deleted by someone else) are skipped. */
+  deletedCount: number;
+}
