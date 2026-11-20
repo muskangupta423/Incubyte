@@ -27,7 +27,11 @@ export function EmployeeFormDialog({ employee, onClose }: EmployeeFormDialogProp
   }
 
   function handleSaved(saved: Employee) {
-    showToast(isEditing ? `Changes to ${saved.fullName} saved` : `${saved.fullName} added`);
+    showToast(
+      isEditing
+        ? `Changes to ${saved.fullName} saved`
+        : `${saved.fullName} added as ${saved.employeeCode}`,
+    );
     onClose();
   }
 

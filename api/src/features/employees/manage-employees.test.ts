@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { createAppWith, createEmployeeFactory } from './test-fixtures';
 
 const newHire: EmployeeInput = {
-  employeeCode: 'EMP-20001',
   fullName: 'Meera Iyer',
   email: 'meera.iyer@acme.test',
   jobTitle: 'Product Designer',
@@ -78,6 +77,7 @@ describe('POST /api/employees', () => {
     expect(response.body).toEqual({
       ...newHire,
       id: expect.any(Number),
+      employeeCode: 'EMP-00001', // first code in an empty database
       currency: 'INR',
       annualSalaryUsd: 27_360, // 2,400,000 × 0.0114
     });
@@ -90,14 +90,12 @@ describe('POST /api/employees', () => {
       .post('/api/employees')
       .send({
         ...newHire,
-        employeeCode: ' emp-20001 ',
         fullName: '  Meera Iyer ',
         email: 'Meera.Iyer@ACME.test',
         country: 'in',
       });
 
     expect(response.body).toMatchObject({
-      employeeCode: 'EMP-20001',
       fullName: 'Meera Iyer',
       email: 'meera.iyer@acme.test',
       country: 'IN',
@@ -126,18 +124,17 @@ describe('POST /api/employees', () => {
     ).toEqual(['annualSalary', 'country', 'email', 'fullName']);
   });
 
-  it.each([
-    ['employee code', { employeeCode: 'EMP-00001' }, 'employeeCode'],
-    ['email (in any letter case)', { email: 'PERSON1@acme.test' }, 'email'],
-  ])('rejects a duplicate %s with 409', async (_description, duplicate, field) => {
+  it('rejects a duplicate email (in any letter case) with 409', async () => {
     const { app } = await createAppWith([employee()]);
 
     const response = await request(app)
       .post('/api/employees')
-      .send({ ...newHire, ...duplicate });
+      .send({ ...newHire, email: 'PERSON1@acme.test' });
 
     expect(response.status).toBe(409);
-    expect(response.body.error.details).toEqual([{ field, message: response.body.error.message }]);
+    expect(response.body.error.details).toEqual([
+      { field: 'email', message: 'Another employee already uses this email address.' },
+    ]);
   });
 
   it('rejects a body that is not valid JSON', async () => {
@@ -150,6 +147,75 @@ describe('POST /api/employees', () => {
 
     expect(response.status).toBe(400);
     expect(response.body.error.message).toBe('Request body is not valid JSON.');
+  });
+});
+
+describe('employee codes', () => {
+  async function addHire(app: Awaited<ReturnType<typeof createAppWith>>['app'], email: string) {
+    const response = await request(app)
+      .post('/api/employees')
+      .send({ ...newHire, email });
+    return response.body as { id: number; employeeCode: string };
+  }
+
+  it('assigns the next number after the highest existing code', async () => {
+    const { app } = await createAppWith([
+      employee({ employee_code: 'EMP-00001' }),
+      employee({ employee_code: 'EMP-00007' }),
+    ]);
+
+    expect((await addHire(app, 'a@acme.test')).employeeCode).toBe('EMP-00008');
+    expect((await addHire(app, 'b@acme.test')).employeeCode).toBe('EMP-00009');
+  });
+
+  it('ignores a code sent by the client', async () => {
+    const { app } = await createAppWith([]);
+
+    const response = await request(app)
+      .post('/api/employees')
+      .send({ ...newHire, employeeCode: 'EMP-99999' });
+
+    expect(response.body.employeeCode).toBe('EMP-00001');
+  });
+
+  it('never reuses a code, even after the newest employee is deleted', async () => {
+    const { app } = await createAppWith([employee()]);
+    const first = await addHire(app, 'a@acme.test');
+    await request(app).delete(`/api/employees/${first.id}`);
+
+    const second = await addHire(app, 'b@acme.test');
+
+    expect(first.employeeCode).toBe('EMP-00002');
+    expect(second.employeeCode).toBe('EMP-00003');
+  });
+
+  it('does not use up a number when saving fails', async () => {
+    const { app } = await createAppWith([employee()]);
+    await request(app)
+      .post('/api/employees')
+      .send({ ...newHire, email: 'person1@acme.test' }); // 409
+
+    expect((await addHire(app, 'a@acme.test')).employeeCode).toBe('EMP-00002');
+  });
+
+  it('gives different codes to employees added at the same moment', async () => {
+    const { app } = await createAppWith([]);
+
+    const hires = await Promise.all(
+      ['a', 'b', 'c', 'd', 'e'].map((name) => addHire(app, `${name}@acme.test`)),
+    );
+
+    expect(new Set(hires.map((hire) => hire.employeeCode)).size).toBe(5);
+  });
+
+  it('keeps the code when an employee is edited', async () => {
+    const { app } = await createAppWith([employee()]);
+
+    const response = await request(app)
+      .put('/api/employees/1')
+      .send({ ...newHire, employeeCode: 'EMP-55555' });
+
+    expect(response.body.employeeCode).toBe('EMP-00001');
   });
 });
 
@@ -180,12 +246,12 @@ describe('PUT /api/employees/:id', () => {
     expect(result.rows[0]?.updated_at).not.toBe('2000-01-01T00:00:00.000Z');
   });
 
-  it('allows saving an employee with their own unchanged email and code', async () => {
+  it('allows saving an employee with their own unchanged email', async () => {
     const { app } = await createAppWith([employee()]);
 
     const response = await request(app)
       .put('/api/employees/1')
-      .send({ ...newHire, employeeCode: 'EMP-00001', email: 'person1@acme.test' });
+      .send({ ...newHire, email: 'person1@acme.test' });
 
     expect(response.status).toBe(200);
   });

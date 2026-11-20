@@ -87,6 +87,10 @@ Each layer only talks to the one below it. This keeps business logic **easy to u
 erDiagram
     EMPLOYEES }o--|| EXCHANGE_RATES : "paid in currency"
     EMPLOYEES ||--o{ SALARY_COMPONENTS : "broken down into (Phase 2)"
+    SEQUENCES {
+        text name PK "employee_code"
+        int last_value "last number used; only goes up"
+    }
     EMPLOYEES {
         int id PK
         text employee_code UK "e.g. EMP-00042"
@@ -162,7 +166,9 @@ Errors use one consistent shape, with proper status codes (400, 404, 409, 500):
 
 Unexpected errors are logged on the server; the client only gets a generic message (no stack traces or SQL).
 
-**Write endpoint rules:** `POST` returns **201** with a `Location` header; `PUT` replaces all fields; `DELETE` returns **204**;
+**Write endpoint rules:** `POST` assigns the **next employee code** (EMP-xxxxx from the `sequences` counter, in the
+same transaction as the insert; a code sent by the client is ignored) and returns **201** with a `Location` header;
+`PUT` never changes the code; `PUT` replaces all fields; `DELETE` returns **204**;
 unknown id → **404**; duplicate employee code or email → **409** naming the field. The body is validated with the
 shared `employeeInputSchema` (same rules as the web form). Currency is derived from the country. Each write and the
 read-back of the saved row run in one batch (one round trip, one transaction).

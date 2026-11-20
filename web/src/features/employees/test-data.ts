@@ -51,9 +51,10 @@ export function employeeApiHandlers(initialEmployees: Employee[]) {
   const requests: URLSearchParams[] = [];
   const changes: { method: string; id?: number; body?: EmployeeInput }[] = [];
 
-  const toEmployee = (id: number, input: EmployeeInput): Employee => ({
+  const toEmployee = (id: number, employeeCode: string, input: EmployeeInput): Employee => ({
     ...input,
     id,
+    employeeCode,
     currency: isCountryCode(input.country) ? COUNTRIES[input.country].currency : 'USD',
     annualSalaryUsd: input.annualSalary,
   });
@@ -86,7 +87,8 @@ export function employeeApiHandlers(initialEmployees: Employee[]) {
     http.post('*/api/employees', async ({ request }) => {
       const body = (await request.json()) as EmployeeInput;
       changes.push({ method: 'POST', body });
-      const created = toEmployee(Math.max(0, ...employees.map((e) => e.id)) + 1, body);
+      const id = Math.max(0, ...employees.map((e) => e.id)) + 1;
+      const created = toEmployee(id, `EMP-${String(id).padStart(5, '0')}`, body);
       employees = [...employees, created];
       return HttpResponse.json(created, { status: 201 });
     }),
@@ -94,7 +96,8 @@ export function employeeApiHandlers(initialEmployees: Employee[]) {
       const id = Number(params.id);
       const body = (await request.json()) as EmployeeInput;
       changes.push({ method: 'PUT', id, body });
-      const updated = toEmployee(id, body);
+      const existingCode = employees.find((employee) => employee.id === id)?.employeeCode ?? '';
+      const updated = toEmployee(id, existingCode, body);
       employees = employees.map((employee) => (employee.id === id ? updated : employee));
       return HttpResponse.json(updated);
     }),

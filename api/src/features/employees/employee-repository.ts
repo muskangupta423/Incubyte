@@ -7,6 +7,10 @@ import type {
 } from '@acme/shared';
 import { LibsqlError, type InStatement, type InValue, type Row } from '@libsql/client';
 import type { Database } from '../../db/client';
+import {
+  ADVANCE_EMPLOYEE_CODE_SEQUENCE_SQL,
+  CURRENT_EMPLOYEE_CODE_SQL,
+} from '../../db/employee-code';
 import { buildEmployeeFilters } from './employee-filters';
 
 /**
@@ -99,13 +103,19 @@ export async function findEmployeeById(db: Database, id: number): Promise<Employ
   return row ? toEmployee(row) : null;
 }
 
-/** Inserts and reads back the new employee in one write batch (one round trip, one transaction). */
+/**
+ * Adds an employee with the next system-assigned code, in ONE write batch (one transaction):
+ * take the next number → insert with that code → read the new row back.
+ * If the insert fails (e.g. duplicate email) everything rolls back, so no number is used up,
+ * and SQLite runs write transactions one at a time, so two saves can't get the same code.
+ */
 export async function insertEmployee(db: Database, record: EmployeeRecord): Promise<Employee> {
-  const [, selectResult] = await runWrite(db, [
+  const [, , selectResult] = await runWrite(db, [
+    ADVANCE_EMPLOYEE_CODE_SEQUENCE_SQL,
     {
       sql: `INSERT INTO employees
               (employee_code, full_name, email, job_title, department, country, currency, annual_salary, hire_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            VALUES ((${CURRENT_EMPLOYEE_CODE_SQL}), ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: recordValues(record),
     },
     selectEmployeeWhere('e.id = last_insert_rowid()', []),
@@ -123,8 +133,9 @@ export async function updateEmployee(
 ): Promise<Employee | null> {
   const [, selectResult] = await runWrite(db, [
     {
+      // employee_code is deliberately not here: codes never change once assigned.
       sql: `UPDATE employees
-            SET employee_code = ?, full_name = ?, email = ?, job_title = ?, department = ?,
+            SET full_name = ?, email = ?, job_title = ?, department = ?,
                 country = ?, currency = ?, annual_salary = ?, hire_date = ?,
                 updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
             WHERE id = ?`,
@@ -154,7 +165,6 @@ function selectEmployeeWhere(condition: string, args: InValue[]): InStatement {
 
 function recordValues(record: EmployeeRecord): InValue[] {
   return [
-    record.employeeCode,
     record.fullName,
     record.email,
     record.jobTitle,

@@ -1,11 +1,7 @@
 import { COUNTRIES, COUNTRY_CODES } from '@acme/shared';
 import { describe, expect, it } from 'vitest';
-import {
-  formatEmployeeCode,
-  generateEmployees,
-  localSalaryRange,
-  SALARY_ROUNDING,
-} from './generate-employees';
+import { formatEmployeeCode } from '../employee-code';
+import { generateEmployees, localSalaryRange, SALARY_ROUNDING } from './generate-employees';
 import { SEED_COUNTRIES, SEED_ROLES } from './reference-data';
 
 const SEED = 42;

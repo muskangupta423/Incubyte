@@ -24,10 +24,12 @@ describe('adding an employee', () => {
 
     await user.click(screen.getByRole('button', { name: 'Add employee' }));
     const dialog = await screen.findByRole('dialog', { name: 'Add employee' });
+    const code = within(dialog).getByLabelText('Employee code');
+    expect(code).toHaveAttribute('readonly');
+    expect(code).toHaveAccessibleDescription('The next free code is assigned when you save');
 
     await user.type(within(dialog).getByLabelText('Full name'), 'Meera Iyer');
     await user.type(within(dialog).getByLabelText('Email'), 'Meera.Iyer@acme.test');
-    await user.type(within(dialog).getByLabelText('Employee code'), 'emp-20001');
     await user.type(within(dialog).getByLabelText('Hire date'), '2026-11-02');
     await user.type(within(dialog).getByLabelText('Job title'), 'Product Designer');
     await user.type(within(dialog).getByLabelText('Department'), 'Product');
@@ -37,16 +39,15 @@ describe('adding an employee', () => {
 
     await user.click(within(dialog).getByRole('button', { name: 'Add employee' }));
 
-    expect(await screen.findByText('Meera Iyer added')).toBeInTheDocument();
+    expect(await screen.findByText('Meera Iyer added as EMP-00002')).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    // Sent already cleaned up by the shared schema (trimmed, upper-cased code, lower-cased email).
+    // Sent already cleaned up by the shared schema (trimmed, lower-cased email). No code: the API assigns it.
     expect(api.changes).toEqual([
       {
         method: 'POST',
         body: {
           fullName: 'Meera Iyer',
           email: 'meera.iyer@acme.test',
-          employeeCode: 'EMP-20001',
           hireDate: '2026-11-02',
           jobTitle: 'Product Designer',
           department: 'Product',
@@ -94,7 +95,6 @@ describe('adding an employee', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Add employee' });
     await user.type(within(dialog).getByLabelText('Full name'), 'Asha Rao');
     await user.type(within(dialog).getByLabelText('Email'), 'asha.rao@acme.test');
-    await user.type(within(dialog).getByLabelText('Employee code'), 'EMP-20002');
     await user.type(within(dialog).getByLabelText('Hire date'), '2026-11-02');
     await user.type(within(dialog).getByLabelText('Job title'), 'Engineer');
     await user.type(within(dialog).getByLabelText('Department'), 'Engineering');
@@ -130,6 +130,8 @@ describe('editing an employee', () => {
     await user.click(screen.getByRole('button', { name: 'Edit Asha Rao' }));
     const dialog = await screen.findByRole('dialog', { name: 'Edit Asha Rao' });
     expect(within(dialog).getByLabelText('Full name')).toHaveValue('Asha Rao');
+    expect(within(dialog).getByLabelText('Employee code')).toHaveValue('EMP-00001');
+    expect(within(dialog).getByLabelText('Employee code')).toHaveAttribute('readonly');
     expect(within(dialog).getByLabelText('Country')).toHaveValue('IN');
 
     const salary = within(dialog).getByLabelText('Annual salary (INR)');

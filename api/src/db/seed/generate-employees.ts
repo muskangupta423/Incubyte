@@ -1,4 +1,5 @@
 import { COUNTRIES } from '@acme/shared';
+import { formatEmployeeCode } from '../employee-code';
 import { createRandom, type Random } from './random';
 import { SEED_COUNTRIES, SEED_ROLES, type SeedCountry, type SeedRole } from './reference-data';
 
@@ -27,10 +28,6 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 export function localSalaryRange(role: SeedRole, country: SeedCountry) {
   const toLocal = (usd: number) => (usd * country.payLevel) / country.usdRate;
   return { min: toLocal(role.minUsd), max: toLocal(role.maxUsd) };
-}
-
-export function formatEmployeeCode(sequence: number): string {
-  return `EMP-${String(sequence).padStart(5, '0')}`;
 }
 
 /**

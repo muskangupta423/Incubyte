@@ -41,7 +41,6 @@ describe('employeeListQuerySchema', () => {
 
 describe('employeeInputSchema', () => {
   const validInput = {
-    employeeCode: 'EMP-00042',
     fullName: 'Asha Rao',
     email: 'asha.rao@acme.test',
     jobTitle: 'Software Engineer',
@@ -56,14 +55,17 @@ describe('employeeInputSchema', () => {
     return result.error?.issues.find((issue) => issue.path[0] === field)?.message;
   }
 
+  it('ignores an employee code: codes are assigned by the system', () => {
+    expect(employeeInputSchema.parse({ ...validInput, employeeCode: 'EMP-1' })).toEqual(validInput);
+  });
+
   it('accepts a valid employee', () => {
     expect(employeeInputSchema.parse(validInput)).toEqual(validInput);
   });
 
-  it('normalises code, email, country and surrounding spaces', () => {
+  it('normalises email, country and surrounding spaces', () => {
     const parsed = employeeInputSchema.parse({
       ...validInput,
-      employeeCode: ' emp-00042 ',
       email: ' Asha.Rao@ACME.test',
       country: 'in',
       fullName: ' Asha Rao ',
@@ -76,8 +78,6 @@ describe('employeeInputSchema', () => {
     ['fullName', '   ', 'Full name is required'],
     ['fullName', undefined, 'Full name is required'],
     ['fullName', 'x'.repeat(101), 'Full name must be at most 100 characters'],
-    ['employeeCode', 'E1', 'Use 3–20 letters, digits or dashes, e.g. EMP-00042'],
-    ['employeeCode', 'EMP 42', 'Use 3–20 letters, digits or dashes, e.g. EMP-00042'],
     ['email', 'asha@', 'Enter a valid email address'],
     ['country', 'FR', 'Choose a supported country'],
     ['annualSalary', 0, 'Annual salary must be greater than 0'],

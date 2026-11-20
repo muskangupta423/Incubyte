@@ -24,7 +24,6 @@ const COUNTRY_OPTIONS = COUNTRY_CODES.map((code) => ({
 })).sort((a, b) => a.label.localeCompare(b.label));
 
 const EMPTY_FORM: DefaultValues<EmployeeInputDraft> = {
-  employeeCode: '',
   fullName: '',
   email: '',
   jobTitle: '',
@@ -103,11 +102,15 @@ export function EmployeeForm({ formId, employee, onSubmit, onSaved }: EmployeeFo
             {...register('email')}
           />
         </Wide>
+        {/* Assigned by the system and never changed, so it is shown but not editable. */}
         <TextField
           label="Employee code"
-          hint="e.g. EMP-00042"
-          error={errors.employeeCode?.message}
-          {...register('employeeCode')}
+          readOnly
+          value={employee?.employeeCode ?? ''}
+          placeholder="Assigned automatically"
+          hint={
+            employee ? "Codes can't be changed" : 'The next free code is assigned when you save'
+          }
         />
         <TextField
           label="Hire date"
@@ -163,7 +166,6 @@ export function EmployeeForm({ formId, employee, onSubmit, onSaved }: EmployeeFo
 
 function toFormValues(employee: Employee): EmployeeInputDraft {
   return {
-    employeeCode: employee.employeeCode,
     fullName: employee.fullName,
     email: employee.email,
     jobTitle: employee.jobTitle,

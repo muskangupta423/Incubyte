@@ -66,15 +66,11 @@ const requiredText = (label: string) =>
 
 /**
  * Body for creating or updating an employee (PUT replaces all fields).
- * Currency is not part of the input: it is derived from the country.
+ * Not part of the input: the currency (derived from the country) and the employee code
+ * (assigned by the system on create and never changed — HR shouldn't have to guess free codes).
  * Shared so the web form shows exactly the same rules the API enforces.
  */
 export const employeeInputSchema = z.object({
-  employeeCode: z
-    .string('Employee code is required')
-    .trim()
-    .toUpperCase()
-    .regex(/^[A-Z0-9-]{3,20}$/, 'Use 3–20 letters, digits or dashes, e.g. EMP-00042'),
   fullName: requiredText('Full name'),
   email: z
     .string('Email is required')

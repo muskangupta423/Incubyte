@@ -25,7 +25,7 @@ and answer common pay questions without building a pivot table.
 | # | Feature | Why it matters to the HR Manager |
 |---|---------|----------------------------------|
 | F1 | **Employee list** with search (name / email / employee code), filters (country, department, job title) and sorting (name, salary, hire date) | Replaces scrolling through Excel; must stay fast with 10,000 rows |
-| F2 | **Add / edit / delete employee**, with validation (required fields, valid email, salary > 0, supported country; currency is set automatically from the country; employee code and email must be unique) | Keeps data clean; no more typos in cells |
+| F2 | **Add / edit / delete employee**, with validation (required fields, valid email, salary > 0, supported country). The **employee code is assigned automatically** (next number in the EMP-xxxxx series, never reused) and the **currency is set from the country** — HR never has to guess free codes. Email must be unique. | Keeps data clean; no more typos in cells |
 | F3 | **Salaries stored in local currency**, also shown in **USD** using a fixed exchange-rate table | Employees are paid in many currencies; comparison needs one common unit |
 | F4 | **Insights dashboard**: headcount, total payroll, average & median salary (in USD) | Quick picture of the whole org |
 | F5 | **Pay by country**: headcount, min / median / average / max per country | "How do we pay people in each country?" |
@@ -39,7 +39,7 @@ Built after Phase 1 (F1–F8) is working and deployed, so a usable product exist
 
 | # | Feature | Why it matters to the HR Manager |
 |---|---------|----------------------------------|
-| F9 | **Import employees from Excel (.xlsx) or CSV**, with a downloadable template. Rows are matched by `employee_code`: new codes are added, existing ones are updated. | HR's data lives in Excel today. Without import, switching means retyping 10,000 rows. |
+| F9 | **Import employees from Excel (.xlsx) or CSV**, with a downloadable template. Rows with an existing `employee_code` update that employee; rows without a code are added and get the next code automatically. | HR's data lives in Excel today. Without import, switching means retyping 10,000 rows. |
 | F10 | **Import preview & validation**: every row is checked first, errors are listed by row number and reason (e.g. *"Row 42: salary must be greater than 0"*). Nothing is saved unless the whole file is valid. | Avoids half-imported, broken data. HR can fix the sheet and retry. |
 | F11 | **Export to Excel / CSV** for the current filtered list | HR can still share data or do ad-hoc analysis in Excel when needed. |
 | F12 | **Salary breakdown (light)**: optional list of **earning components** per employee (e.g. Basic, HRA, Special Allowance), each with an annual amount. Components must **add up exactly to the annual salary**. Names are free text, so any country can use its own components. | HR can see and record how CTC is structured, without a payroll engine. |

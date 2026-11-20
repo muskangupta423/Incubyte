@@ -47,6 +47,24 @@ describe('database schema', () => {
     expect(result.rows[0]?.total).toBe(1);
   });
 
+  it('starts the employee-code counter from the highest existing code, never lowering it', async () => {
+    await insertEmployee(db, { employee_code: 'EMP-00042' });
+    await db.execute(`UPDATE sequences SET last_value = 10 WHERE name = 'employee_code'`);
+
+    await migrate(db);
+    const afterSync = await db.execute(
+      `SELECT last_value FROM sequences WHERE name = 'employee_code'`,
+    );
+    await db.execute(`UPDATE sequences SET last_value = 99 WHERE name = 'employee_code'`);
+    await migrate(db);
+    const afterSecondSync = await db.execute(
+      `SELECT last_value FROM sequences WHERE name = 'employee_code'`,
+    );
+
+    expect(afterSync.rows[0]?.last_value).toBe(42);
+    expect(afterSecondSync.rows[0]?.last_value).toBe(99);
+  });
+
   it('stores a valid employee with timestamps filled in', async () => {
     await insertEmployee(db);
 

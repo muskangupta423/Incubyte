@@ -41,6 +41,15 @@ describe('seedDatabase', () => {
     expect(await count(db, 'exchange_rates')).toBe(SEED_COUNTRIES.length);
   });
 
+  it('makes new hires continue after the seeded employee codes', async () => {
+    await seedDatabase(db, generateEmployees(1_234, 7));
+
+    const result = await db.execute(
+      `SELECT last_value FROM sequences WHERE name = 'employee_code'`,
+    );
+    expect(result.rows[0]?.last_value).toBe(1_234);
+  });
+
   it('changes nothing if any row is invalid', async () => {
     await seedDatabase(db, generateEmployees(50, 7));
     const [first, ...rest] = generateEmployees(100, 8);

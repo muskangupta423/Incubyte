@@ -28,6 +28,12 @@ export const SCHEMA_STATEMENTS = [
     updated_at    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
   ) STRICT`,
 
+  // Counters that only go up (e.g. the number in the next employee code). See employee-code.ts.
+  `CREATE TABLE IF NOT EXISTS sequences (
+    name       TEXT PRIMARY KEY,
+    last_value INTEGER NOT NULL CHECK (last_value >= 0)
+  ) STRICT`,
+
   // Filters and insights group by these columns.
   // (country, job_title) also serves "country only" lookups, so no separate country index is needed.
   `CREATE INDEX IF NOT EXISTS idx_employees_country_job_title ON employees (country, job_title)`,

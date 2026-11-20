@@ -132,4 +132,27 @@ Step 10 (Insights dashboard) — "yes". Self-review: replaced Recharts' default 
 `!important` overrides) with a themed one, extracted the URL-filter parsing shared by both pages, and
 fixed two tests that matched the wrong element (the "Employees" nav link) instead of weakening them.
 
+### 9. My catch: employee codes should be assigned by the system
+
+While testing the app myself, I added a few employees and kept getting
+"Another employee already has this employee code." With 10,000 employees, an HR manager can't know
+which codes are free. I raised it:
+
+> Like there are 10k employees. When I tried to add a new employee, I added 2–3 employee ids and got
+> the error 'Another employee already has this employee code.' Now as a new-hire HR, how do I remember
+> whether that id exists or not? How should I know the next id? There should be some serial maybe.
+
+**This was a gap in the AI's design that I found through hands-on product testing**, not something
+the AI flagged. The AI had made the code a required, user-entered field. My question turned it into a
+better design:
+
+- Codes are now **assigned by the system** (next number in the EMP-xxxxx series) and shown read-only.
+- The AI's first idea, "highest code + 1", would **reuse** a code after the newest employee is deleted.
+  It was changed to a counter that only goes up, advanced in the same transaction as the insert, so
+  failed saves don't use up numbers and two HR users saving at once can't clash.
+- Decisions D13g and D13h record the reasoning; six API tests cover it.
+
+Lesson: AI produced a technically valid form, but only using the product as the HR persona revealed that
+the workflow was unworkable. Reviewing AI output as a user, not just as a code reviewer, matters.
+
 > *(more to be added as we build)*

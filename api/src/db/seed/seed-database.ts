@@ -1,6 +1,10 @@
 import { COUNTRIES } from '@acme/shared';
 import type { InStatement } from '@libsql/client';
 import type { Database } from '../client';
+import {
+  RESET_EMPLOYEE_CODE_SEQUENCE_SQL,
+  SYNC_EMPLOYEE_CODE_SEQUENCE_SQL,
+} from '../employee-code';
 import type { SeedEmployee } from './generate-employees';
 import { EXCHANGE_RATES_AS_OF, SEED_COUNTRIES } from './reference-data';
 
@@ -23,7 +27,7 @@ const EMPLOYEE_COLUMNS = [
 ] as const satisfies readonly (keyof SeedEmployee)[];
 
 /**
- * Replaces all employees and exchange rates with the given seed data.
+ * Replaces all employees and exchange rates with the given seed data, and restarts the code counter.
  * Runs as ONE batch, which libSQL executes as a single transaction: it either fully succeeds or changes nothing.
  */
 export async function seedDatabase(
@@ -34,8 +38,11 @@ export async function seedDatabase(
     [
       'DELETE FROM employees',
       'DELETE FROM exchange_rates',
+      RESET_EMPLOYEE_CODE_SEQUENCE_SQL,
       ...exchangeRateInserts(),
       ...employeeInserts(employees),
+      // New hires continue after the seeded codes.
+      SYNC_EMPLOYEE_CODE_SEQUENCE_SQL,
     ],
     'write',
   );
