@@ -28,7 +28,7 @@ describe('Employees page', () => {
     useFakeApi([makeEmployee()]);
     renderRoute('/employees');
 
-    expect(screen.getByRole('status')).toHaveTextContent('Loading employees…');
+    expect(screen.getByText('Loading employees…')).toBeInTheDocument();
     const row = await screen.findByRole('row', { name: /Asha Rao/ });
 
     expect(row).toHaveTextContent('EMP-00001 · asha.rao@acme.test');

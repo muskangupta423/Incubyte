@@ -16,6 +16,7 @@ The main rule: **send the browser only what it shows.**
 | Seeding 10,000 rows | Inserted in **one transaction, in batches** (one round trip per batch, not per row). |
 | Unbounded results | `pageSize` validated and capped (max 100); sort field **whitelisted** (never raw user input in SQL). |
 | Unneeded columns | List query selects only the columns the table shows. |
+| Form code size | Add/edit/delete dialogs (React Hook Form) are lazy-loaded; measured: main bundle 155 kB gzip, form dialog 15 kB gzip loaded on first open. |
 | Chart library size | Dashboard route (with Recharts) is lazy-loaded, so the Employees page doesn't download it. |
 | Dropdown values | Countries come from `shared/` (no request). Departments / job titles from `/api/employees/filter-options` (`DISTINCT` on indexed columns). |
 | Importing a large sheet (Phase 2) | Validate all rows in memory first, then write in **one transaction** using batched statements. File size capped (e.g. 5 MB ≈ well over 10k rows). |

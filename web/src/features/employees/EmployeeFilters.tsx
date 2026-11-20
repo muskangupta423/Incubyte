@@ -47,21 +47,24 @@ export function EmployeeFilters({
         emptyOptionLabel="All countries"
         value={query.country ?? ''}
         options={COUNTRY_OPTIONS}
-        onChange={(country) => onChange({ country: isCountryCode(country) ? country : undefined })}
+        onChange={(event) => {
+          const country = event.target.value;
+          onChange({ country: isCountryCode(country) ? country : undefined });
+        }}
       />
       <SelectField
         label="Department"
         emptyOptionLabel="All departments"
         value={query.department ?? ''}
         options={toOptions(filterOptions?.departments)}
-        onChange={(department) => onChange({ department: department || undefined })}
+        onChange={(event) => onChange({ department: event.target.value || undefined })}
       />
       <SelectField
         label="Job title"
         emptyOptionLabel="All job titles"
         value={query.jobTitle ?? ''}
         options={toOptions(filterOptions?.jobTitles)}
-        onChange={(jobTitle) => onChange({ jobTitle: jobTitle || undefined })}
+        onChange={(event) => onChange({ jobTitle: event.target.value || undefined })}
       />
       <ClearArea>
         <Button onClick={onClear} disabled={!hasFilters}>

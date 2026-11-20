@@ -38,7 +38,7 @@ export function Pagination({
             label="Rows per page"
             value={String(pageSize)}
             options={pageSizeOptions.map((size) => ({ value: String(size), label: String(size) }))}
-            onChange={(value) => onPageSizeChange(Number(value))}
+            onChange={(event) => onPageSizeChange(Number(event.target.value))}
           />
         </PageSize>
 

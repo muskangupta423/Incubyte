@@ -93,3 +93,6 @@ export const employeeInputSchema = z.object({
 });
 
 export type EmployeeInput = z.infer<typeof employeeInputSchema>;
+
+/** What a form holds before validation (e.g. country may still be lower-case or empty). */
+export type EmployeeInputDraft = z.input<typeof employeeInputSchema>;

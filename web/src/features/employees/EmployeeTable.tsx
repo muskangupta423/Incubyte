@@ -1,6 +1,13 @@
 import { countryName, type Employee, type EmployeeSortField } from '@acme/shared';
 import styled from 'styled-components';
-import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from '../../components/icons';
+import { Button } from '../../components/Button';
+import {
+  ArrowDownIcon,
+  ArrowUpDownIcon,
+  ArrowUpIcon,
+  EditIcon,
+  TrashIcon,
+} from '../../components/icons';
 import { formatDate, formatMoney } from '../../utils/format';
 
 type SortOrder = 'asc' | 'desc';
@@ -10,13 +17,22 @@ interface EmployeeTableProps {
   sortBy: EmployeeSortField;
   sortOrder: SortOrder;
   onSortChange: (sortBy: EmployeeSortField) => void;
+  onEdit: (employee: Employee) => void;
+  onDelete: (employee: Employee) => void;
 }
 
 /**
  * One semantic <table>. On phones, CSS turns each row into a card (labels come from data-label)
  * and the sortable headers into a row of sort buttons — same markup, no duplicate content.
  */
-export function EmployeeTable({ employees, sortBy, sortOrder, onSortChange }: EmployeeTableProps) {
+export function EmployeeTable({
+  employees,
+  sortBy,
+  sortOrder,
+  onSortChange,
+  onEdit,
+  onDelete,
+}: EmployeeTableProps) {
   const sortProps = { sortBy, sortOrder, onSortChange };
 
   return (
@@ -29,6 +45,9 @@ export function EmployeeTable({ employees, sortBy, sortOrder, onSortChange }: Em
           <PlainHeader>Country</PlainHeader>
           <SortableHeader field="annualSalary" label="Annual salary" align="right" {...sortProps} />
           <SortableHeader field="hireDate" label="Hire date" {...sortProps} />
+          <PlainHeader>
+            <span className="visually-hidden">Actions</span>
+          </PlainHeader>
         </tr>
       </thead>
       <tbody>
@@ -52,6 +71,26 @@ export function EmployeeTable({ employees, sortBy, sortOrder, onSortChange }: Em
               )}
             </NumberCell>
             <td data-label="Hire date">{formatDate(employee.hireDate)}</td>
+            <td>
+              <RowActions>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => onEdit(employee)}
+                  aria-label={`Edit ${employee.fullName}`}
+                >
+                  <EditIcon />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => onDelete(employee)}
+                  aria-label={`Delete ${employee.fullName}`}
+                >
+                  <TrashIcon />
+                </Button>
+              </RowActions>
+            </td>
           </tr>
         ))}
       </tbody>
@@ -254,6 +293,12 @@ const NumberCell = styled.td`
     text-align: right;
     white-space: nowrap;
   }
+`;
+
+const RowActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: ${({ theme }) => theme.spacing.xs};
 `;
 
 const Strong = styled.span`

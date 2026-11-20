@@ -29,9 +29,12 @@ export const lightColors = {
   onAccent: '#0A0A0D',
   focusRing: '#014D43',
   danger: '#B42318',
+  dangerHover: '#912018',
+  onDanger: '#FFFFFF',
   dangerSurface: '#FDECEA',
   success: '#067963',
   shadow: 'rgba(10, 10, 13, 0.08)',
+  backdrop: 'rgba(6, 10, 30, 0.45)',
 };
 
 export type ColorToken = keyof typeof lightColors;
@@ -61,9 +64,12 @@ export const darkColors: Record<ColorToken, string> = {
   onAccent: '#060A1E',
   focusRing: '#D3FE73',
   danger: '#FF8A80',
+  dangerHover: '#FFA49C',
+  onDanger: '#2A0A0C',
   dangerSurface: '#3A1518',
   success: '#5DD6A6',
   shadow: 'rgba(0, 0, 0, 0.45)',
+  backdrop: 'rgba(0, 0, 0, 0.6)',
 };
 
 export const fonts = {

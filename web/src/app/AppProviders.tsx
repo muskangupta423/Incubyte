@@ -1,6 +1,7 @@
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { ThemeProvider } from 'styled-components';
+import { ToastProvider } from '../components/toast/ToastProvider';
 import { GlobalStyle } from '../theme/GlobalStyle';
 import { theme } from '../theme/theme';
 
@@ -18,7 +19,7 @@ export function AppProviders({ queryClient, children }: AppProvidersProps) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
         <GlobalStyle />
-        {children}
+        <ToastProvider>{children}</ToastProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

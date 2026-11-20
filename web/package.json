@@ -12,9 +12,11 @@
   },
   "dependencies": {
     "@acme/shared": "*",
+    "@hookform/resolvers": "7.0.7",
     "@tanstack/react-query": "5.108.2",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "react-hook-form": "7.92.0",
     "react-router": "8.5.2",
     "styled-components": "6.6.0"
   },

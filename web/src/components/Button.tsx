@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes } from 'react';
 import styled, { css } from 'styled-components';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost';
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type ButtonSize = 'sm' | 'md';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -36,6 +36,15 @@ const variantStyles = {
 
     &:hover:not(:disabled) {
       background: ${({ theme }) => theme.colors.secondaryHover};
+    }
+  `,
+  danger: css`
+    background: ${({ theme }) => theme.colors.danger};
+    color: ${({ theme }) => theme.colors.onDanger};
+    border-color: ${({ theme }) => theme.colors.danger};
+
+    &:hover:not(:disabled) {
+      background: ${({ theme }) => theme.colors.dangerHover};
     }
   `,
   ghost: css`

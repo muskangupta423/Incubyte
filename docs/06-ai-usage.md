@@ -124,4 +124,8 @@ Step 8 (Employees table) — "start". Self-review caught issues before I saw the
 that silently hit unmocked API endpoints, non-null assertions and a dynamic `delete` flagged by lint;
 all fixed before review rather than suppressed.
 
+Step 9 (add / edit / delete) — "yes". Self-review: removed an `!important` and a type assertion,
+replaced several booleans with one discriminated union, and lazy-loaded the dialogs after the build
+warned about bundle size.
+
 > *(more to be added as we build)*

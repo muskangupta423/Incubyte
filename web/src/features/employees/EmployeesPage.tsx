@@ -1,8 +1,10 @@
-import type { EmployeeListQuery, EmployeeSortField } from '@acme/shared';
+import type { Employee, EmployeeListQuery, EmployeeSortField } from '@acme/shared';
+import { lazy, Suspense, useState } from 'react';
 import styled from 'styled-components';
 import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
+import { PlusIcon } from '../../components/icons';
 import { LoadingState } from '../../components/LoadingState';
 import { PageHeader } from '../../components/PageHeader';
 import { Pagination } from '../../components/Pagination';
@@ -11,6 +13,14 @@ import { EmployeeFilters } from './EmployeeFilters';
 import { useEmployeeListParams } from './employee-list-params';
 import { EmployeeTable } from './EmployeeTable';
 import { useEmployeeList } from './use-employee-queries';
+
+// The dialogs (and the form libraries they use) download on first use, keeping the list page fast to load.
+const EmployeeFormDialog = lazy(() =>
+  import('./EmployeeFormDialog').then((module) => ({ default: module.EmployeeFormDialog })),
+);
+const DeleteEmployeeDialog = lazy(() =>
+  import('./DeleteEmployeeDialog').then((module) => ({ default: module.DeleteEmployeeDialog })),
+);
 
 const SEARCH_DEBOUNCE_MS = 300;
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
@@ -23,8 +33,17 @@ const FIRST_SORT_ORDER: Record<EmployeeSortField, 'asc' | 'desc'> = {
   hireDate: 'desc',
 };
 
+/** Which dialog is open. One value instead of several booleans, so two dialogs can never be open at once. */
+type OpenDialog =
+  | { kind: 'none' }
+  | { kind: 'add' }
+  | { kind: 'edit'; employee: Employee }
+  | { kind: 'delete'; employee: Employee };
+
 export function EmployeesPage() {
   const { query, searchText, hasFilters, updateQuery, clearFilters } = useEmployeeListParams();
+  const [openDialog, setOpenDialog] = useState<OpenDialog>({ kind: 'none' });
+  const closeDialog = () => setOpenDialog({ kind: 'none' });
 
   // The URL updates on every keystroke; the request waits until typing pauses.
   const debouncedSearch = useDebouncedValue(query.search, SEARCH_DEBOUNCE_MS);
@@ -44,6 +63,12 @@ export function EmployeesPage() {
       <PageHeader
         title="Employees"
         description="Search, filter and manage salaries for everyone at ACME."
+        actions={
+          <Button variant="primary" onClick={() => setOpenDialog({ kind: 'add' })}>
+            <PlusIcon />
+            Add employee
+          </Button>
+        }
       />
       <EmployeeFilters
         searchText={searchText}
@@ -59,7 +84,19 @@ export function EmployeesPage() {
         onSortChange={changeSort}
         onPageChange={(page) => updateQuery({ page })}
         onPageSizeChange={(pageSize) => updateQuery({ pageSize })}
+        onEdit={(employee) => setOpenDialog({ kind: 'edit', employee })}
+        onDelete={(employee) => setOpenDialog({ kind: 'delete', employee })}
       />
+
+      <Suspense fallback={null}>
+        {openDialog.kind === 'add' && <EmployeeFormDialog onClose={closeDialog} />}
+        {openDialog.kind === 'edit' && (
+          <EmployeeFormDialog employee={openDialog.employee} onClose={closeDialog} />
+        )}
+        {openDialog.kind === 'delete' && (
+          <DeleteEmployeeDialog employee={openDialog.employee} onClose={closeDialog} />
+        )}
+      </Suspense>
     </>
   );
 }
@@ -71,6 +108,8 @@ interface EmployeeResultsProps {
   onSortChange: (field: EmployeeSortField) => void;
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
+  onEdit: (employee: Employee) => void;
+  onDelete: (employee: Employee) => void;
 }
 
 /** Chooses what to show for the current request: loading, error, empty or the table. */
@@ -81,6 +120,8 @@ function EmployeeResults({
   onSortChange,
   onPageChange,
   onPageSizeChange,
+  onEdit,
+  onDelete,
 }: EmployeeResultsProps) {
   const { data, error, isPending, isPlaceholderData, refetch } = useEmployeeList(query);
 
@@ -116,6 +157,8 @@ function EmployeeResults({
         sortBy={query.sortBy}
         sortOrder={query.sortOrder}
         onSortChange={onSortChange}
+        onEdit={onEdit}
+        onDelete={onDelete}
       />
       <Pagination
         page={data.page}

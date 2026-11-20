@@ -1,4 +1,11 @@
-import type { Employee, EmployeeFilterOptions, PaginatedResponse } from '@acme/shared';
+import {
+  COUNTRIES,
+  isCountryCode,
+  type Employee,
+  type EmployeeFilterOptions,
+  type EmployeeInput,
+  type PaginatedResponse,
+} from '@acme/shared';
 import { http, HttpResponse } from 'msw';
 
 export function makeEmployee(overrides: Partial<Employee> = {}): Employee {
@@ -36,11 +43,20 @@ const filterOptions: EmployeeFilterOptions = {
 };
 
 /**
- * A small fake of GET /api/employees: applies search, country and paging to `employees`
- * (like the real API) and records every request so tests can check what was asked for.
+ * A small in-memory fake of the employees API: lists (with search, country and paging, like the
+ * real API), creates, updates and deletes. It records requests so tests can check what was sent.
  */
-export function employeeApiHandlers(employees: Employee[]) {
+export function employeeApiHandlers(initialEmployees: Employee[]) {
+  let employees = [...initialEmployees];
   const requests: URLSearchParams[] = [];
+  const changes: { method: string; id?: number; body?: EmployeeInput }[] = [];
+
+  const toEmployee = (id: number, input: EmployeeInput): Employee => ({
+    ...input,
+    id,
+    currency: isCountryCode(input.country) ? COUNTRIES[input.country].currency : 'USD',
+    annualSalaryUsd: input.annualSalary,
+  });
 
   const handlers = [
     http.get('*/api/employees/filter-options', () => HttpResponse.json(filterOptions)),
@@ -67,7 +83,28 @@ export function employeeApiHandlers(employees: Employee[]) {
       };
       return HttpResponse.json(body);
     }),
+    http.post('*/api/employees', async ({ request }) => {
+      const body = (await request.json()) as EmployeeInput;
+      changes.push({ method: 'POST', body });
+      const created = toEmployee(Math.max(0, ...employees.map((e) => e.id)) + 1, body);
+      employees = [...employees, created];
+      return HttpResponse.json(created, { status: 201 });
+    }),
+    http.put('*/api/employees/:id', async ({ request, params }) => {
+      const id = Number(params.id);
+      const body = (await request.json()) as EmployeeInput;
+      changes.push({ method: 'PUT', id, body });
+      const updated = toEmployee(id, body);
+      employees = employees.map((employee) => (employee.id === id ? updated : employee));
+      return HttpResponse.json(updated);
+    }),
+    http.delete('*/api/employees/:id', ({ params }) => {
+      const id = Number(params.id);
+      changes.push({ method: 'DELETE', id });
+      employees = employees.filter((employee) => employee.id !== id);
+      return new HttpResponse(null, { status: 204 });
+    }),
   ];
 
-  return { handlers, requests };
+  return { handlers, requests, changes };
 }
