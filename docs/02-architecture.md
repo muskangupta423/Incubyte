@@ -6,7 +6,7 @@
 flowchart LR
     HR([HR Manager]) -->|uses browser| WEB
 
-    subgraph Frontend [web/ — React + Vite + MUI]
+    subgraph Frontend [web/ — React + Vite + Styled Components]
         WEB[Pages: Employees, Insights]
     end
 
@@ -40,23 +40,46 @@ Each layer only talks to the one below it. This keeps business logic **easy to u
 
 ```
 /
-├── api/                    Backend
-│   ├── src/
-│   │   ├── employees/      routes, service, repository, schema (one folder per feature)
-│   │   ├── insights/       routes, service, repository
-│   │   ├── import-export/  file parsing, row validation, export (Phase 2)
-│   │   ├── db/             connection, migrations, seed
-│   │   └── app.ts          Express app (exported for tests)
-│   └── test/
-├── web/                    Frontend
+├── shared/                   Contracts used by BOTH api and web
+│   └── src/                  Zod schemas (employee input, query params) + API response types
+├── api/                      Backend
 │   └── src/
-│       ├── pages/          EmployeesPage, InsightsPage
-│       ├── components/     EmployeeTable, EmployeeForm, charts...
-│       └── api/            small typed API client
-└── docs/                   These artifacts
+│       ├── features/
+│       │   ├── employees/    routes, service, repository, tests
+│       │   ├── insights/     routes, service (stats math), repository (aggregation SQL)
+│       │   ├── compensation/ salary components (Phase 2)
+│       │   └── csv/          Excel/CSV import & export (Phase 2)
+│       ├── db/               connection, schema/migrations, seed
+│       ├── http/             error handler, validation middleware, error types
+│       └── app.ts            Express app (exported for tests)
+├── web/                      Frontend
+│   └── src/
+│       ├── app/              App entry, routing, providers (QueryClient, Theme)
+│       ├── components/       Reusable UI: Button, Input, Select, Table, Pagination, Dialog, StatCard...
+│       ├── features/
+│       │   ├── employees/    list page, form, API hooks, filters
+│       │   ├── dashboard/    insights page, charts, API hooks
+│       │   ├── compensation/ salary breakdown editor (Phase 2)
+│       │   └── csv/          import dialog, export button (Phase 2)
+│       ├── services/         HTTP client (one place for fetch + error handling)
+│       ├── theme/            design tokens (colors, spacing, typography...) + global styles
+│       └── utils/            pure helpers (e.g. currency formatting)
+└── docs/                     These artifacts
 ```
 
-Code is grouped **by feature** (employees, insights), not by type, so everything about one feature lives together.
+- Code is grouped **by feature**, so everything about employees lives in `features/employees/` on both sides.
+- Folders are created only when they are needed — no empty placeholders.
+- `shared/` exists because the **same validation rules** (e.g. "salary must be > 0") are needed in the API and in the form. One schema, no drift.
+
+## Frontend state — where each kind of data lives
+
+| Kind of state | Example | Where it lives |
+|---------------|---------|----------------|
+| Server state | employee list, insights | **TanStack Query** (cached, refetched after changes) |
+| URL state | search, filters, sort, page | **URL query params** — shareable, survives refresh, back button works |
+| Form state | add / edit employee | **React Hook Form** + Zod schema from `shared/` |
+| Local UI state | dialog open/closed | `useState` |
+| Global state | theme only | Styled Components `ThemeProvider` — no global store needed |
 
 ## 4. Data model
 
@@ -133,8 +156,11 @@ Errors use one consistent shape: `{ "error": { "message": "...", "details": [...
 | Validation | Zod (one schema = runtime check + TypeScript type) |
 | Excel / CSV (Phase 2) | ExcelJS (reads & writes .xlsx and .csv), Multer (file upload) |
 | Frontend | React + Vite |
-| UI library | MUI (Material UI) + MUI X DataGrid & Charts |
+| Styling & UI | Styled Components + a small in-house component set built on central design tokens |
+| Routing | React Router |
 | Data fetching | TanStack Query (caching, loading & error states) |
+| Forms | React Hook Form + Zod resolver |
+| Charts | Recharts |
 | Tests | Vitest, Supertest (API), React Testing Library (UI) |
 | Deploy | Vercel (frontend + API) + Turso (hosted SQLite) |
 

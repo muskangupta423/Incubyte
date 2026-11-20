@@ -15,7 +15,8 @@ and **understand how the organization pays people** — replacing spreadsheets.
 | [Build plan](docs/04-plan.md) | Step-by-step plan matching the commit history |
 | [Performance](docs/05-performance.md) | How the app stays fast with 10,000 employees |
 | [AI usage](docs/06-ai-usage.md) | How AI tools were used, and the prompts given |
+| [CLAUDE.md](CLAUDE.md) | Engineering standards given to the AI agent (loaded in every session) |
 
 ## Tech stack
 
-TypeScript · Node.js · Express · SQLite (libSQL / Turso) · React · Vite · MUI · TanStack Query · Vitest
+TypeScript · Node.js · Express · SQLite (libSQL / Turso) · Zod · React · Vite · Styled Components · TanStack Query · React Hook Form · Recharts · Vitest

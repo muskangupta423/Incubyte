@@ -6,6 +6,8 @@ This file records *how* AI was used and the prompts given.
 ## Tools
 
 - **Claude Code** (Anthropic) — agentic coding assistant in the terminal.
+- **[`CLAUDE.md`](../CLAUDE.md)** — my engineering standards for the agent. Claude Code loads it automatically
+  in every session, so the rules apply to every step, not just the first prompt.
 
 ## How I worked with AI
 
@@ -19,6 +21,8 @@ This file records *how* AI was used and the prompts given.
 **Guardrails I followed**
 
 - Docs (requirements, design) were written **before** code, so AI built against an agreed plan.
+- Coding standards were written down once in `CLAUDE.md` instead of being repeated in every prompt.
+- Each step ends with a self-review against the checklist in `CLAUDE.md` (section 12) before I review it.
 - Every change is reviewed by me before it is committed.
 - Tests are required for core logic; AI-written code is not accepted without passing tests.
 - AI suggestions that added unnecessary complexity were rejected (see [decisions](03-decisions.md)).
@@ -62,6 +66,24 @@ because HR's data lives in Excel today — without import the product can't repl
 *Outcome:* Phase 2 adds an optional breakdown of **earning components only**, with free-text names (works for any country)
 that must add up to the annual salary. Deductions stay out of scope (see decisions D19–D22).
 
-### 5. Coding
+### 5. Engineering standards (before coding)
 
-> *(to be added)*
+> *(Full text in [`CLAUDE.md`](../CLAUDE.md) — three parts: Engineering Standards,
+> Avoid AI-generated code complexity, Developer Experience & Learning.)*
+>
+> Also, check if we need to update docs/06-ai-usage.md file.
+
+*Outcome:* the standards were saved as `CLAUDE.md` so the agent follows them in every session. They changed earlier AI choices:
+
+| Before (AI's first proposal) | After (my standards) |
+|------------------------------|----------------------|
+| MUI component library | **Styled Components** + small in-house components on central design tokens |
+| MUI X Charts | **Recharts** (lazy-loaded with the dashboard) |
+| Plain controlled forms | **React Hook Form** + shared Zod schema |
+| Filters in component state | Filters, search, sort, page in the **URL** |
+| Performance claims like "about a second" | Removed — a **measurement step** was added to the plan; numbers go in the performance doc |
+| Frontend `pages/` + `components/` | **Feature folders** (`employees`, `dashboard`, `compensation`, `csv`) |
+
+### 6. Coding
+
+> *(to be added as we build)*
