@@ -22,3 +22,12 @@ export const COUNTRIES: Record<CountryCode, Country> = {
   SG: { name: 'Singapore', currency: 'SGD' },
   BR: { name: 'Brazil', currency: 'BRL' },
 };
+
+export function isCountryCode(value: string): value is CountryCode {
+  return (COUNTRY_CODES as readonly string[]).includes(value);
+}
+
+/** "IN" → "India"; unknown codes are shown as-is rather than hidden. */
+export function countryName(code: string): string {
+  return isCountryCode(code) ? COUNTRIES[code].name : code;
+}

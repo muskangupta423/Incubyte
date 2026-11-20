@@ -43,6 +43,18 @@ export const GlobalStyle = createGlobalStyle`
     line-height: 1.2;
   }
 
+  /* Hidden visually but still read by screen readers (e.g. a table caption). */
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   /* Visible focus for keyboard users only (not on mouse click). */
   :focus-visible {
     outline: 2px solid ${({ theme }) => theme.colors.focusRing};

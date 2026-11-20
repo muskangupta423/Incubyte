@@ -1,6 +1,13 @@
 import { screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { employeeApiHandlers } from '../../features/employees/test-data';
 import { renderRoute } from '../../test/render';
+import { server } from '../../test/server';
+
+// The Employees page loads data; these tests only need it to answer.
+beforeEach(() => {
+  server.use(...employeeApiHandlers([]).handlers);
+});
 
 afterEach(() => {
   localStorage.clear();

@@ -120,4 +120,8 @@ uses mint headings, lime secondary text and a slightly brighter teal for primary
 
 ### 8. Frontend steps
 
-> *(to be added as we build)*
+Step 8 (Employees table) — "start". Self-review caught issues before I saw them, e.g. routing tests
+that silently hit unmocked API endpoints, non-null assertions and a dynamic `delete` flagged by lint;
+all fixed before review rather than suppressed.
+
+> *(more to be added as we build)*
