@@ -25,3 +25,11 @@ export class NotFoundError extends HttpError {
     this.name = 'NotFoundError';
   }
 }
+
+/** The request clashes with existing data, e.g. an email that another employee already uses. */
+export class ConflictError extends HttpError {
+  constructor(message: string, details?: ApiErrorDetail[]) {
+    super(409, message, details);
+    this.name = 'ConflictError';
+  }
+}

@@ -1,3 +1,4 @@
+import { COUNTRIES, COUNTRY_CODES } from '@acme/shared';
 import { describe, expect, it } from 'vitest';
 import {
   formatEmployeeCode,
@@ -46,7 +47,7 @@ describe('generateEmployees', () => {
         throw new Error(`Unknown country or role on ${employee.employee_code}`);
 
       const range = localSalaryRange(role, country);
-      expect(employee.currency).toBe(country.currency);
+      expect(employee.currency).toBe(COUNTRIES[country.code].currency);
       expect(employee.department).toBe(role.department);
       expect(employee.annual_salary % SALARY_ROUNDING).toBe(0);
       expect(employee.annual_salary).toBeGreaterThanOrEqual(range.min - SALARY_ROUNDING);
@@ -54,11 +55,11 @@ describe('generateEmployees', () => {
     }
   });
 
-  it('includes every country and every role', () => {
+  it('includes every supported country and every role', () => {
     const countries = new Set(employees.map((employee) => employee.country));
     const jobTitles = new Set(employees.map((employee) => employee.job_title));
 
-    expect(countries.size).toBe(SEED_COUNTRIES.length);
+    expect([...countries].sort()).toEqual([...COUNTRY_CODES].sort());
     expect(jobTitles.size).toBe(SEED_ROLES.length);
   });
 

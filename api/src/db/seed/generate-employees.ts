@@ -1,3 +1,4 @@
+import { COUNTRIES } from '@acme/shared';
 import { createRandom, type Random } from './random';
 import { SEED_COUNTRIES, SEED_ROLES, type SeedCountry, type SeedRole } from './reference-data';
 
@@ -53,7 +54,7 @@ export function generateEmployees(count: number, seed: number): SeedEmployee[] {
       job_title: role.jobTitle,
       department: role.department,
       country: country.code,
-      currency: country.currency,
+      currency: COUNTRIES[country.code].currency,
       annual_salary: randomSalary(random, role, country),
       hire_date: randomHireDate(random),
     });

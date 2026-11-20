@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { COUNTRY_CODES } from './countries';
 
 /** An employee as returned by the API. Salaries are whole units of the employee's local currency. */
 export interface Employee {
@@ -30,8 +31,15 @@ export const DEFAULT_PAGE_SIZE = 25;
 export const MAX_PAGE_SIZE = 100;
 const MAX_SEARCH_LENGTH = 100;
 
+/** Accepts "in", " IN " etc. and returns "IN"; only supported countries pass. */
+const countryCode = z
+  .string()
+  .trim()
+  .toUpperCase()
+  .pipe(z.enum(COUNTRY_CODES, 'Choose a supported country'));
+
 /** Query strings send "" for cleared inputs; treat that the same as "not provided". */
-const optionalText = (schema: z.ZodString) =>
+const optionalFilter = <Schema extends z.ZodType>(schema: Schema) =>
   z.preprocess((value) => (value === '' ? undefined : value), schema.optional());
 
 /**
@@ -41,12 +49,52 @@ const optionalText = (schema: z.ZodString) =>
 export const employeeListQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(MAX_PAGE_SIZE).default(DEFAULT_PAGE_SIZE),
-  search: optionalText(z.string().trim().max(MAX_SEARCH_LENGTH)),
-  country: optionalText(z.string().trim().toUpperCase().length(2, 'Use a 2-letter country code')),
-  department: optionalText(z.string().trim()),
-  jobTitle: optionalText(z.string().trim()),
+  search: optionalFilter(z.string().trim().max(MAX_SEARCH_LENGTH)),
+  country: optionalFilter(countryCode),
+  department: optionalFilter(z.string().trim()),
+  jobTitle: optionalFilter(z.string().trim()),
   sortBy: z.enum(EMPLOYEE_SORT_FIELDS).default('fullName'),
   sortOrder: z.enum(SORT_ORDERS).default('asc'),
 });
 
 export type EmployeeListQuery = z.infer<typeof employeeListQuerySchema>;
+
+export const MAX_ANNUAL_SALARY = 1_000_000_000;
+const MAX_TEXT_LENGTH = 100;
+
+const requiredText = (label: string) =>
+  z
+    .string(`${label} is required`)
+    .trim()
+    .min(1, `${label} is required`)
+    .max(MAX_TEXT_LENGTH, `${label} must be at most ${MAX_TEXT_LENGTH} characters`);
+
+/**
+ * Body for creating or updating an employee (PUT replaces all fields).
+ * Currency is not part of the input: it is derived from the country.
+ * Shared so the web form shows exactly the same rules the API enforces.
+ */
+export const employeeInputSchema = z.object({
+  employeeCode: z
+    .string('Employee code is required')
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z0-9-]{3,20}$/, 'Use 3–20 letters, digits or dashes, e.g. EMP-00042'),
+  fullName: requiredText('Full name'),
+  email: z
+    .string('Email is required')
+    .trim()
+    .toLowerCase()
+    .pipe(z.email('Enter a valid email address')),
+  jobTitle: requiredText('Job title'),
+  department: requiredText('Department'),
+  country: countryCode,
+  annualSalary: z
+    .number('Annual salary must be a number')
+    .int('Annual salary must be a whole number')
+    .positive('Annual salary must be greater than 0')
+    .max(MAX_ANNUAL_SALARY, 'Annual salary looks too large — please check it'),
+  hireDate: z.iso.date('Use the format YYYY-MM-DD'),
+});
+
+export type EmployeeInput = z.infer<typeof employeeInputSchema>;

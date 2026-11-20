@@ -162,6 +162,11 @@ Errors use one consistent shape, with proper status codes (400, 404, 409, 500):
 
 Unexpected errors are logged on the server; the client only gets a generic message (no stack traces or SQL).
 
+**Write endpoint rules:** `POST` returns **201** with a `Location` header; `PUT` replaces all fields; `DELETE` returns **204**;
+unknown id → **404**; duplicate employee code or email → **409** naming the field. The body is validated with the
+shared `employeeInputSchema` (same rules as the web form). Currency is derived from the country. Each write and the
+read-back of the saved row run in one batch (one round trip, one transaction).
+
 **List endpoint rules:** `pageSize` defaults to 25, max 100; `sortBy` must be one of `fullName`, `employeeCode`,
 `annualSalary`, `hireDate` (whitelist → column map, never raw input in SQL); ties are broken by `id` so pages are stable;
 search matches name, email or code (case-insensitive, `%` and `_` treated literally); count and page are fetched in one

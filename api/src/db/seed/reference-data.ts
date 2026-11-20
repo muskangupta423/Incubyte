@@ -1,6 +1,9 @@
+import type { CountryCode } from '@acme/shared';
+
 /**
  * Fixed reference data for generating realistic seed employees.
  *
+ * Country names and currencies live in @acme/shared (COUNTRIES); this file adds seed-only data.
  * Exchange rates are an approximate, dated snapshot (see requirements: no live FX).
  * `payLevel` scales the US salary range to the local market (US = 1.0). Values are illustrative.
  */
@@ -8,10 +11,8 @@
 export const EXCHANGE_RATES_AS_OF = '2026-11-01';
 
 export interface SeedCountry {
-  code: string;
-  name: string;
-  currency: string;
-  /** Value of 1 unit of the local currency in USD. */
+  code: CountryCode;
+  /** Value of 1 unit of the country's currency in USD. */
   usdRate: number;
   payLevel: number;
   /** Relative share of headcount. */
@@ -25,8 +26,6 @@ export interface SeedCountry {
 export const SEED_COUNTRIES: readonly SeedCountry[] = [
   {
     code: 'US',
-    name: 'United States',
-    currency: 'USD',
     usdRate: 1,
     payLevel: 1,
     weight: 30,
@@ -35,8 +34,6 @@ export const SEED_COUNTRIES: readonly SeedCountry[] = [
   },
   {
     code: 'IN',
-    name: 'India',
-    currency: 'INR',
     usdRate: 0.0114,
     payLevel: 0.28,
     weight: 25,
@@ -45,8 +42,6 @@ export const SEED_COUNTRIES: readonly SeedCountry[] = [
   },
   {
     code: 'GB',
-    name: 'United Kingdom',
-    currency: 'GBP',
     usdRate: 1.33,
     payLevel: 0.75,
     weight: 10,
@@ -55,8 +50,6 @@ export const SEED_COUNTRIES: readonly SeedCountry[] = [
   },
   {
     code: 'DE',
-    name: 'Germany',
-    currency: 'EUR',
     usdRate: 1.16,
     payLevel: 0.8,
     weight: 8,
@@ -65,8 +58,6 @@ export const SEED_COUNTRIES: readonly SeedCountry[] = [
   },
   {
     code: 'CA',
-    name: 'Canada',
-    currency: 'CAD',
     usdRate: 0.72,
     payLevel: 0.8,
     weight: 7,
@@ -75,8 +66,6 @@ export const SEED_COUNTRIES: readonly SeedCountry[] = [
   },
   {
     code: 'AU',
-    name: 'Australia',
-    currency: 'AUD',
     usdRate: 0.66,
     payLevel: 0.8,
     weight: 5,
@@ -85,8 +74,6 @@ export const SEED_COUNTRIES: readonly SeedCountry[] = [
   },
   {
     code: 'SG',
-    name: 'Singapore',
-    currency: 'SGD',
     usdRate: 0.77,
     payLevel: 0.75,
     weight: 5,
@@ -95,8 +82,6 @@ export const SEED_COUNTRIES: readonly SeedCountry[] = [
   },
   {
     code: 'BR',
-    name: 'Brazil',
-    currency: 'BRL',
     usdRate: 0.185,
     payLevel: 0.35,
     weight: 10,

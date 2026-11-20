@@ -1,5 +1,5 @@
-import type { ApiErrorResponse } from '@acme/shared';
-import type { ErrorRequestHandler, RequestHandler } from 'express';
+import type { ApiErrorDetail, ApiErrorResponse } from '@acme/shared';
+import type { ErrorRequestHandler, RequestHandler, Response } from 'express';
 import { HttpError, NotFoundError } from './errors';
 
 /** Any request that reached this point matched no route. */
@@ -16,14 +16,24 @@ export const notFoundHandler: RequestHandler = (req) => {
 // Express recognises error handlers by their 4 parameters, so _next must stay.
 export const errorHandler: ErrorRequestHandler = (error: unknown, req, res, _next) => {
   if (error instanceof HttpError) {
-    const body: ApiErrorResponse = {
-      error: { message: error.message, ...(error.details && { details: error.details }) },
-    };
-    res.status(error.status).json(body);
+    sendError(res, error.status, error.message, error.details);
+    return;
+  }
+  if (isMalformedJson(error)) {
+    sendError(res, 400, 'Request body is not valid JSON.');
     return;
   }
 
   console.error(`Unexpected error on ${req.method} ${req.originalUrl}`, error);
-  const body: ApiErrorResponse = { error: { message: 'Something went wrong. Please try again.' } };
-  res.status(500).json(body);
+  sendError(res, 500, 'Something went wrong. Please try again.');
 };
+
+function sendError(res: Response, status: number, message: string, details?: ApiErrorDetail[]) {
+  const body: ApiErrorResponse = { error: { message, ...(details && { details }) } };
+  res.status(status).json(body);
+}
+
+/** express.json() throws a SyntaxError carrying status 400 when the body cannot be parsed. */
+function isMalformedJson(error: unknown): boolean {
+  return error instanceof SyntaxError && 'status' in error && error.status === 400;
+}

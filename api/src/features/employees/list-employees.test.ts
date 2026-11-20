@@ -1,33 +1,13 @@
 import type { Employee } from '@acme/shared';
 import request from 'supertest';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { createApp } from '../../app';
+import { createAppWith, createEmployeeFactory } from './test-fixtures';
 import type { SeedEmployee } from '../../db/seed/generate-employees';
-import { seedDatabase } from '../../db/seed/seed-database';
-import { createTestDatabase } from '../../db/test-database';
 
-let nextNumber = 1;
-
-function employee(overrides: Partial<SeedEmployee> = {}): SeedEmployee {
-  const number = nextNumber++;
-  return {
-    employee_code: `EMP-${String(number).padStart(5, '0')}`,
-    full_name: `Person ${number}`,
-    email: `person${number}@acme.test`,
-    job_title: 'Software Engineer',
-    department: 'Engineering',
-    country: 'US',
-    currency: 'USD',
-    annual_salary: 100_000,
-    hire_date: '2020-01-01',
-    ...overrides,
-  };
-}
+let employee: ReturnType<typeof createEmployeeFactory>;
 
 async function appWith(employees: SeedEmployee[]) {
-  const db = await createTestDatabase();
-  await seedDatabase(db, employees);
-  return createApp({ db });
+  return (await createAppWith(employees)).app;
 }
 
 function names(body: { items: Employee[] }): string[] {
@@ -36,7 +16,7 @@ function names(body: { items: Employee[] }): string[] {
 
 describe('GET /api/employees', () => {
   beforeEach(() => {
-    nextNumber = 1;
+    employee = createEmployeeFactory();
   });
 
   describe('pagination', () => {

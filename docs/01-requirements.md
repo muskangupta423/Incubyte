@@ -25,7 +25,7 @@ and answer common pay questions without building a pivot table.
 | # | Feature | Why it matters to the HR Manager |
 |---|---------|----------------------------------|
 | F1 | **Employee list** with search (name / email / employee code), filters (country, department, job title) and sorting (name, salary, hire date) | Replaces scrolling through Excel; must stay fast with 10,000 rows |
-| F2 | **Add / edit / delete employee**, with validation (required fields, salary > 0, valid country & currency) | Keeps data clean; no more typos in cells |
+| F2 | **Add / edit / delete employee**, with validation (required fields, valid email, salary > 0, supported country; currency is set automatically from the country; employee code and email must be unique) | Keeps data clean; no more typos in cells |
 | F3 | **Salaries stored in local currency**, also shown in **USD** using a fixed exchange-rate table | Employees are paid in many currencies; comparison needs one common unit |
 | F4 | **Insights dashboard**: headcount, total payroll, average & median salary (in USD) | Quick picture of the whole org |
 | F5 | **Pay by country**: headcount, min / median / average / max per country | "How do we pay people in each country?" |

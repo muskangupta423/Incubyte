@@ -1,3 +1,4 @@
+import { COUNTRIES } from '@acme/shared';
 import type { InStatement } from '@libsql/client';
 import type { Database } from '../client';
 import type { SeedEmployee } from './generate-employees';
@@ -43,7 +44,7 @@ export async function seedDatabase(
 function exchangeRateInserts(): InStatement[] {
   return SEED_COUNTRIES.map((country) => ({
     sql: 'INSERT INTO exchange_rates (currency, usd_rate, as_of_date) VALUES (?, ?, ?)',
-    args: [country.currency, country.usdRate, EXCHANGE_RATES_AS_OF],
+    args: [COUNTRIES[country.code].currency, country.usdRate, EXCHANGE_RATES_AS_OF],
   }));
 }
 
