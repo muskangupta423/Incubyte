@@ -1,15 +1,14 @@
 import type { EmployeeInput } from '@acme/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createEmployee, deleteEmployee, updateEmployee } from './employees-api';
-import { employeeQueryKeys } from './use-employee-queries';
 
 /**
- * After any change, mark all employee data (list pages, filter options) as outdated,
- * so whatever is on screen refetches and shows the change.
+ * After any change, mark all cached server data as outdated: the employee list, filter options
+ * AND the insights dashboard are all derived from employees. Whatever is on screen refetches.
  */
 function useRefreshEmployeesOnSuccess() {
   const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ queryKey: employeeQueryKeys.all });
+  return () => queryClient.invalidateQueries();
 }
 
 export function useCreateEmployee() {

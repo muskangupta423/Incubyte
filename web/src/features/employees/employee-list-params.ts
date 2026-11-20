@@ -1,6 +1,7 @@
 import { employeeListQuerySchema, type EmployeeListQuery } from '@acme/shared';
 import { useMemo } from 'react';
 import { useSearchParams } from 'react-router';
+import { parseSearchParams } from '../../utils/search-params';
 
 /**
  * The employee list's search, filters, sort and page live in the URL (?country=IN&page=2…):
@@ -21,17 +22,8 @@ const URL_FIELDS = [
   'pageSize',
 ] as const satisfies readonly (keyof EmployeeListQuery)[];
 
-/** Reads the URL with the same rules the API uses. Invalid values (e.g. a hand-edited ?page=abc) are dropped. */
 export function parseListParams(searchParams: URLSearchParams): EmployeeListQuery {
-  const raw: Record<string, string> = Object.fromEntries(searchParams);
-  const result = employeeListQuerySchema.safeParse(raw);
-  if (result.success) return result.data;
-
-  const invalidFields = new Set(result.error.issues.map((issue) => issue.path[0]));
-  const validRaw = Object.fromEntries(
-    Object.entries(raw).filter(([field]) => !invalidFields.has(field)),
-  );
-  return employeeListQuerySchema.safeParse(validRaw).data ?? DEFAULT_QUERY;
+  return parseSearchParams(employeeListQuerySchema, searchParams);
 }
 
 /** Writes only values that differ from the defaults, so the plain list has a clean URL. */

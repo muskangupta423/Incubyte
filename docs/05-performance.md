@@ -17,7 +17,7 @@ The main rule: **send the browser only what it shows.**
 | Unbounded results | `pageSize` validated and capped (max 100); sort field **whitelisted** (never raw user input in SQL). |
 | Unneeded columns | List query selects only the columns the table shows. |
 | Form code size | Add/edit/delete dialogs (React Hook Form) are lazy-loaded; measured: main bundle 155 kB gzip, form dialog 15 kB gzip loaded on first open. |
-| Chart library size | Dashboard route (with Recharts) is lazy-loaded, so the Employees page doesn't download it. |
+| Chart library size | Recharts is only in the lazy-loaded Insights chunk — measured: 121 kB gzip, downloaded only when Insights is opened; main bundle stays 155 kB gzip. |
 | Dropdown values | Countries come from `shared/` (no request). Departments / job titles from `/api/employees/filter-options` (`DISTINCT` on indexed columns). |
 | Importing a large sheet (Phase 2) | Validate all rows in memory first, then write in **one transaction** using batched statements. File size capped (e.g. 5 MB ≈ well over 10k rows). |
 | Exporting (Phase 2) | Uses the same filtered SQL query as the list, without pagination (export is the one place a full result set is intended). |

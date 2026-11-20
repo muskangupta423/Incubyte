@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
-import { afterAll, afterEach, beforeAll } from 'vitest';
+import { afterAll, afterEach, beforeAll, vi } from 'vitest';
 import { server } from './server';
 
 // jsdom doesn't implement <dialog>'s showModal()/close() (real browsers do). Minimal test-only stand-ins;
@@ -11,6 +11,14 @@ HTMLDialogElement.prototype.showModal = function showModal(this: HTMLDialogEleme
 HTMLDialogElement.prototype.close = function close(this: HTMLDialogElement) {
   this.removeAttribute('open');
   this.dispatchEvent(new Event('close'));
+};
+
+// jsdom has no ResizeObserver; Recharts' ResponsiveContainer needs one. Charts render at their
+// initial size in tests — what we assert is the numbers and text, not pixels.
+globalThis.ResizeObserver ??= class {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
 };
 
 // Any request without a handler fails the test, so no test silently hits a real network.

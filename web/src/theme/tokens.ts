@@ -35,6 +35,10 @@ export const lightColors = {
   success: '#067963',
   shadow: 'rgba(10, 10, 13, 0.08)',
   backdrop: 'rgba(6, 10, 30, 0.45)',
+  /** Charts use one brand colour per chart (single series): easy to read, no colour legend needed. */
+  chartBar: '#014D43',
+  chartBarHover: '#0A6457',
+  chartGrid: '#E2E1DB',
 };
 
 export type ColorToken = keyof typeof lightColors;
@@ -70,6 +74,9 @@ export const darkColors: Record<ColorToken, string> = {
   success: '#5DD6A6',
   shadow: 'rgba(0, 0, 0, 0.45)',
   backdrop: 'rgba(0, 0, 0, 0.6)',
+  chartBar: '#D3FE73',
+  chartBarHover: '#E4FFA6',
+  chartGrid: '#232A48',
 };
 
 export const fonts = {

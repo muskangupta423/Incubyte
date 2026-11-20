@@ -128,4 +128,8 @@ Step 9 (add / edit / delete) — "yes". Self-review: removed an `!important` and
 replaced several booleans with one discriminated union, and lazy-loaded the dialogs after the build
 warned about bundle size.
 
+Step 10 (Insights dashboard) — "yes". Self-review: replaced Recharts' default tooltip (which needed
+`!important` overrides) with a themed one, extracted the URL-filter parsing shared by both pages, and
+fixed two tests that matched the wrong element (the "Employees" nav link) instead of weakening them.
+
 > *(more to be added as we build)*

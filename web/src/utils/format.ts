@@ -34,3 +34,25 @@ const dateFormatter = new Intl.DateTimeFormat(LOCALE, { dateStyle: 'medium', tim
 export function formatDate(isoDate: string): string {
   return dateFormatter.format(new Date(isoDate));
 }
+
+const compactMoneyFormatter = new Intl.NumberFormat(LOCALE, {
+  style: 'currency',
+  currency: 'USD',
+  notation: 'compact',
+  maximumFractionDigits: 1,
+});
+
+/** 713820637 → "$713.8M" — for headline figures and chart axes. */
+export function formatCompactUsd(amount: number): string {
+  return compactMoneyFormatter.format(amount);
+}
+
+const percentFormatter = new Intl.NumberFormat(LOCALE, {
+  style: 'percent',
+  maximumFractionDigits: 1,
+});
+
+/** 0.524 → "52.4%" */
+export function formatPercent(ratio: number): string {
+  return percentFormatter.format(ratio);
+}
