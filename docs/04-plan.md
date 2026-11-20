@@ -7,7 +7,7 @@ so the git history shows how the solution evolved.
 |------|------|-----------|
 | | **Phase 1 — Core product** | |
 | 0 | Artifacts: requirements, architecture, decisions, plan, performance, AI usage | Docs committed before code |
-| 1 | Project setup: npm workspaces (`shared/`, `api/`, `web/`), strict TypeScript, Vitest, ESLint + Prettier | `npm test`, `npm run typecheck`, `npm run lint` pass from the root |
+| 1 | Project setup: npm workspaces (`api/`, `web/`; `shared/` is added with its first schema), strict TypeScript, Vitest, ESLint + Prettier | `npm test`, `npm run typecheck`, `npm run lint` pass from the root |
 | 2 | Database: schema, migrations, connection, exchange-rate table | Integration test creates schema in-memory |
 | 3 | Seed script: 10,000 deterministic employees across countries, departments, roles | `npm run seed` fills DB; test checks count & determinism |
 | 4 | Employees API: list (pagination, search, filters, sort) | API tests pass |
