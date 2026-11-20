@@ -24,7 +24,7 @@ cpSync('web/dist', `${OUTPUT}/static`, { recursive: true });
 
 console.log('2/3 Bundling the API into one serverless function…');
 await build({
-  entryPoints: ['api/src/vercel.ts'],
+  entryPoints: ['server/src/vercel.ts'],
   // .cjs: the root package.json says "type": "module", so a .js file would be read as an ES module.
   outfile: `${FUNCTION_DIR}/index.cjs`,
   bundle: true,

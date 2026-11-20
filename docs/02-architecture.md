@@ -10,7 +10,7 @@ flowchart LR
         WEB[Pages: Employees, Insights]
     end
 
-    subgraph Backend [api/ — Node + Express + TypeScript]
+    subgraph Backend [server/ — Node + Express + TypeScript]
         R[Routes<br/>HTTP in/out] --> S[Services<br/>business rules]
         S --> REPO[Repositories<br/>SQL queries]
     end
@@ -22,7 +22,7 @@ flowchart LR
 In plain words:
 
 - **web/** — what the HR Manager sees and clicks.
-- **api/** — receives requests, checks the data, applies rules, talks to the database.
+- **server/** — the API: receives requests, checks the data, applies rules, talks to the database.
 - **Database** — stores employees and exchange rates.
 
 ## 2. Backend layers (why 3 layers?)
@@ -40,9 +40,9 @@ Each layer only talks to the one below it. This keeps business logic **easy to u
 
 ```
 /
-├── shared/                   Contracts used by BOTH api and web
+├── shared/                   Contracts used by BOTH server and web
 │   └── src/                  Zod schemas (employee input, query params) + API response types
-├── api/                      Backend
+├── server/                   Backend (the API)
 │   └── src/
 │       ├── features/
 │       │   ├── employees/    routes, service, repository, tests

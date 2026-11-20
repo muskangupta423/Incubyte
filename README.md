@@ -23,7 +23,7 @@ Requires **Node.js 22+** (see `.nvmrc`).
 
 ```bash
 npm install
-npm run seed       # creates api/local.db with 10,000 employees (same data every run)
+npm run seed       # creates server/local.db with 10,000 employees (same data every run)
 npm run dev:api    # API on http://localhost:3001
 npm run dev:web    # app on http://localhost:5173 (in a second terminal)
 ```
