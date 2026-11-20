@@ -1,13 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import styled from 'styled-components';
-import { ToastContext } from './toast-context';
+import styled, { css } from 'styled-components';
+import { CheckIcon, TrashIcon } from '../icons';
+import { ToastContext, type ToastTone } from './toast-context';
 
 const TOAST_DURATION_MS = 4000;
 
 interface Toast {
   id: number;
   message: string;
+  tone: ToastTone;
 }
+
+const TONE_ICONS: Record<ToastTone, ReactNode> = {
+  success: <CheckIcon />,
+  danger: <TrashIcon />,
+  neutral: null,
+};
 
 /**
  * Short confirmation messages ("Employee added"). Rendered in a polite live region,
@@ -18,9 +26,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const nextId = useRef(1);
   const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
 
-  const showToast = useCallback((message: string) => {
+  const showToast = useCallback((message: string, tone: ToastTone = 'neutral') => {
     const id = nextId.current++;
-    setToasts((current) => [...current, { id, message }]);
+    setToasts((current) => [...current, { id, message, tone }]);
 
     const timer = setTimeout(() => {
       setToasts((current) => current.filter((toast) => toast.id !== id));
@@ -42,7 +50,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <Region role="status" aria-live="polite">
         {toasts.map((toast) => (
-          <ToastMessage key={toast.id}>{toast.message}</ToastMessage>
+          <ToastMessage key={toast.id} $tone={toast.tone}>
+            {TONE_ICONS[toast.tone]}
+            {toast.message}
+          </ToastMessage>
         ))}
       </Region>
     </ToastContext>
@@ -68,13 +79,48 @@ const Region = styled.div`
   }
 `;
 
-const ToastMessage = styled.div`
+/** Soft tinted background, strong coloured edge and icon; the text keeps full contrast. */
+const toneStyles = {
+  success: css`
+    border-color: ${({ theme }) => theme.colors.success};
+    background: ${({ theme }) => theme.colors.successSurface};
+    color: ${({ theme }) => theme.colors.text};
+
+    svg {
+      color: ${({ theme }) => theme.colors.success};
+    }
+  `,
+  danger: css`
+    border-color: ${({ theme }) => theme.colors.danger};
+    background: ${({ theme }) => theme.colors.dangerSurface};
+    color: ${({ theme }) => theme.colors.text};
+
+    svg {
+      color: ${({ theme }) => theme.colors.danger};
+    }
+  `,
+  neutral: css`
+    border-color: ${({ theme }) => theme.colors.accent};
+    background: ${({ theme }) => theme.colors.text};
+    color: ${({ theme }) => theme.colors.background};
+  `,
+};
+
+const ToastMessage = styled.div<{ $tone: ToastTone }>`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
   padding: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.lg};
-  border-left: 4px solid ${({ theme }) => theme.colors.accent};
+  border: 1px solid;
+  border-left-width: 4px;
   border-radius: ${({ theme }) => theme.radii.md};
-  background: ${({ theme }) => theme.colors.text};
-  color: ${({ theme }) => theme.colors.background};
   box-shadow: ${({ theme }) => theme.shadows.md};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.medium};
+
+  ${({ $tone }) => toneStyles[$tone]}
+
+  svg {
+    flex-shrink: 0;
+  }
 `;

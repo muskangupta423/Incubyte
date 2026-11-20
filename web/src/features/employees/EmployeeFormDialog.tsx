@@ -30,6 +30,7 @@ export function EmployeeFormDialog({ employee, open, onClose, onExited }: Employ
       isEditing
         ? `Changes to ${saved.fullName} saved`
         : `${saved.fullName} added as ${saved.employeeCode}`,
+      'success',
     );
     onClose();
   }

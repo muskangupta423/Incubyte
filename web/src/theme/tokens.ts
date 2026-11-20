@@ -33,6 +33,7 @@ export const lightColors = {
   onDanger: '#FFFFFF',
   dangerSurface: '#FDECEA',
   success: '#067963',
+  successSurface: '#E3F6EE',
   shadow: 'rgba(10, 10, 13, 0.08)',
   backdrop: 'rgba(6, 10, 30, 0.45)',
   /** Charts use one brand colour per chart (single series): easy to read, no colour legend needed. */
@@ -72,6 +73,7 @@ export const darkColors: Record<ColorToken, string> = {
   onDanger: '#2A0A0C',
   dangerSurface: '#3A1518',
   success: '#5DD6A6',
+  successSurface: '#0F2E26',
   shadow: 'rgba(0, 0, 0, 0.45)',
   backdrop: 'rgba(0, 0, 0, 0.6)',
   chartBar: '#D3FE73',

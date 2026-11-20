@@ -23,7 +23,7 @@ export function DeleteEmployeeDialog({
   function confirmDelete() {
     deleteEmployee.mutate(employee.id, {
       onSuccess: () => {
-        showToast(`${employee.fullName} deleted`);
+        showToast(`${employee.fullName} deleted`, 'danger');
         onClose();
       },
     });

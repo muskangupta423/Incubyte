@@ -95,6 +95,14 @@ export function FilterIcon() {
   );
 }
 
+export function CheckIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+
 export function CloseIcon() {
   return (
     <svg {...iconProps}>
