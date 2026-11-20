@@ -179,7 +179,8 @@ Each group has USD stats; `local` stats (in the local currency) are included onl
 in one currency — e.g. per country, or any grouping filtered to one country.
 
 **List endpoint rules:** `pageSize` defaults to 25, max 100; `sortBy` must be one of `fullName`, `employeeCode`,
-`annualSalary`, `hireDate` (whitelist → column map, never raw input in SQL); ties are broken by `id` so pages are stable;
+`annualSalary`, `hireDate` (whitelist → column map, never raw input in SQL); codes sort in number order
+(by length, then text, so EMP-100000 comes after EMP-99999); ties are broken by `id` so pages are stable;
 search matches name, email or code (case-insensitive, `%` and `_` treated literally); count and page are fetched in one
 read batch (one round trip, consistent totals).
 

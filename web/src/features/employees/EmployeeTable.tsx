@@ -41,6 +41,7 @@ export function EmployeeTable({
       <thead>
         <tr>
           <SortableHeader field="fullName" label="Employee" {...sortProps} />
+          <SortableHeader field="employeeCode" label="Code" {...sortProps} />
           <PlainHeader>Role</PlainHeader>
           <PlainHeader>Country</PlainHeader>
           <SortableHeader field="annualSalary" label="Annual salary" align="right" {...sortProps} />
@@ -55,10 +56,9 @@ export function EmployeeTable({
           <tr key={employee.id}>
             <PrimaryCell>
               <Strong>{employee.fullName}</Strong>
-              <Muted>
-                {employee.employeeCode} · {employee.email}
-              </Muted>
+              <Muted>{employee.email}</Muted>
             </PrimaryCell>
+            <CodeCell data-label="Code">{employee.employeeCode}</CodeCell>
             <td data-label="Role">
               {employee.jobTitle}
               <Muted>{employee.department}</Muted>
@@ -284,6 +284,11 @@ const PrimaryCell = styled.td`
   ${({ theme }) => theme.media.tablet} {
     min-width: 14rem;
   }
+`;
+
+const CodeCell = styled.td`
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 `;
 
 const NumberCell = styled.td`

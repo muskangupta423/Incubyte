@@ -201,6 +201,23 @@ describe('GET /api/employees', () => {
 
       expect(names(response.body)).toEqual(['Cy', 'Bea', 'Al']);
     });
+
+    it('sorts by employee code in number order, in both directions', async () => {
+      const app = await appWith([
+        employee({ employee_code: 'EMP-99999', full_name: 'Third' }),
+        employee({ employee_code: 'EMP-100000', full_name: 'Fourth' }),
+        employee({ employee_code: 'EMP-00002', full_name: 'Second' }),
+        employee({ employee_code: 'EMP-00001', full_name: 'First' }),
+      ]);
+
+      const ascending = await request(app).get('/api/employees?sortBy=employeeCode');
+      const descending = await request(app).get(
+        '/api/employees?sortBy=employeeCode&sortOrder=desc',
+      );
+
+      expect(names(ascending.body)).toEqual(['First', 'Second', 'Third', 'Fourth']);
+      expect(names(descending.body)).toEqual(['Fourth', 'Third', 'Second', 'First']);
+    });
   });
 
   describe('invalid input', () => {

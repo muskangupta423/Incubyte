@@ -42,6 +42,7 @@ The main rule: **send the browser only what it shows.**
 | Search uses `LIKE '%term%'`, which can't use a normal index | A scan of 10k rows is small | Use SQLite **FTS5** full-text search (or Postgres trigram index) |
 | Offset pagination gets slower on deep pages | Max ~400 pages of 25 | Switch to **cursor (keyset) pagination** |
 | Median sorts each group's salaries (window function) on every request | Sorting 10k numbers is cheap | Precompute stats on write / cache, or Postgres `percentile_cont` |
+| Sorting by employee code can't use the code's index (it sorts by `length(code)`, then code, for number order) | Measured 11–14 ms on 10k rows | Store the code's number in its own indexed column |
 | Insights recomputed on every request | Aggregations over 10k rows are cheap | Cache results and invalidate when employees change |
 
 ## What we intentionally did *not* add

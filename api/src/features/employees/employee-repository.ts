@@ -17,11 +17,13 @@ import { buildEmployeeFilters } from './employee-filters';
  * Whitelist of sortable columns. User input only ever selects a key from this map,
  * so it can never inject SQL into ORDER BY (which cannot use ? parameters).
  */
-const SORT_COLUMNS: Record<EmployeeSortField, string> = {
-  fullName: 'e.full_name',
-  employeeCode: 'e.employee_code',
-  annualSalary: 'e.annual_salary',
-  hireDate: 'e.hire_date',
+const SORT_COLUMNS: Record<EmployeeSortField, readonly string[]> = {
+  fullName: ['e.full_name'],
+  // Codes are text: plain text order would put EMP-100000 before EMP-99999.
+  // Shorter codes first, then text order, gives numeric order.
+  employeeCode: ['length(e.employee_code)', 'e.employee_code'],
+  annualSalary: ['e.annual_salary'],
+  hireDate: ['e.hire_date'],
 };
 
 /** Only the columns the API returns — no SELECT *. */
@@ -56,7 +58,8 @@ export async function findEmployeePage(
   query: EmployeeListQuery,
 ): Promise<EmployeePage> {
   const { whereSql, args } = buildEmployeeFilters(query);
-  const orderSql = `${SORT_COLUMNS[query.sortBy]} ${query.sortOrder === 'desc' ? 'DESC' : 'ASC'}`;
+  const direction = query.sortOrder === 'desc' ? 'DESC' : 'ASC';
+  const orderSql = SORT_COLUMNS[query.sortBy].map((column) => `${column} ${direction}`).join(', ');
   const offset = (query.page - 1) * query.pageSize;
 
   // Both queries in one read batch: a single round trip and a consistent snapshot

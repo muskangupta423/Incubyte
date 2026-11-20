@@ -31,7 +31,8 @@ describe('Employees page', () => {
     expect(screen.getByText('Loading employees…')).toBeInTheDocument();
     const row = await screen.findByRole('row', { name: /Asha Rao/ });
 
-    expect(row).toHaveTextContent('EMP-00001 · asha.rao@acme.test');
+    expect(row).toHaveTextContent('asha.rao@acme.test');
+    expect(row).toHaveTextContent('EMP-00001');
     expect(row).toHaveTextContent('Software Engineer');
     expect(row).toHaveTextContent('India');
     expect(row).toHaveTextContent('₹2,500,000');
@@ -139,6 +140,22 @@ describe('Employees page', () => {
     await user.click(within(salaryHeader).getByRole('button'));
 
     await waitFor(() => expect(salaryHeader).toHaveAttribute('aria-sort', 'ascending'));
+  });
+
+  it('sorts by employee code, lowest first, then reversed', async () => {
+    const api = useFakeApi();
+    const { user } = renderRoute('/employees');
+    const codeHeader = await screen.findByRole('columnheader', { name: /Code/ });
+
+    await user.click(within(codeHeader).getByRole('button'));
+
+    await waitFor(() => expect(codeHeader).toHaveAttribute('aria-sort', 'ascending'));
+    expect(api.requests.at(-1)?.get('sortBy')).toBe('employeeCode');
+
+    await user.click(within(codeHeader).getByRole('button'));
+
+    await waitFor(() => expect(codeHeader).toHaveAttribute('aria-sort', 'descending'));
+    expect(api.requests.at(-1)?.get('sortOrder')).toBe('desc');
   });
 
   it('restores search, filters and sort from a shared link', async () => {
