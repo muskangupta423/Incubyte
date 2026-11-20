@@ -1,7 +1,8 @@
 import type { ButtonHTMLAttributes } from 'react';
 import styled, { css } from 'styled-components';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+/** ghost: icon/quiet actions. ghostDanger: quiet destructive action (e.g. a row's delete icon). */
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'ghostDanger' | 'danger';
 type ButtonSize = 'sm' | 'md';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -47,13 +48,25 @@ const variantStyles = {
       background: ${({ theme }) => theme.colors.dangerHover};
     }
   `,
+  // Hover uses the accent colour, so it stays visible even on a hovered (grey) table row.
   ghost: css`
     background: transparent;
     color: ${({ theme }) => theme.colors.text};
     border-color: transparent;
 
     &:hover:not(:disabled) {
-      background: ${({ theme }) => theme.colors.surfaceMuted};
+      background: ${({ theme }) => theme.colors.accentHover};
+      color: ${({ theme }) => theme.colors.onAccent};
+    }
+  `,
+  ghostDanger: css`
+    background: transparent;
+    color: ${({ theme }) => theme.colors.text};
+    border-color: transparent;
+
+    &:hover:not(:disabled) {
+      background: ${({ theme }) => theme.colors.dangerSurface};
+      color: ${({ theme }) => theme.colors.danger};
     }
   `,
 };

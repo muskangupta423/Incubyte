@@ -53,6 +53,42 @@ describe('Employees page', () => {
     expect(api.requests.at(-1)?.get('page')).toBe('2');
   });
 
+  it('jumps straight to a page with the "Go to page" box', async () => {
+    useFakeApi(makeEmployees(60)); // 3 pages of 25
+    const { user, router } = renderRoute('/employees');
+    await screen.findByText('Showing 1–25 of 60');
+    const goToPage = screen.getByLabelText('Go to page');
+
+    await user.type(goToPage, '3');
+    await user.click(screen.getByRole('button', { name: 'Go' }));
+
+    expect(await screen.findByText('Showing 51–60 of 60')).toBeInTheDocument();
+    expect(router.state.location.search).toBe('?page=3');
+    expect(goToPage).toHaveValue(null);
+  });
+
+  it.each(['1111111', '0', '2.5'])(
+    'explains that page "%s" does not exist and stays on the current page',
+    async (pageNumber) => {
+      useFakeApi(makeEmployees(60)); // 3 pages of 25
+      const { user, router } = renderRoute('/employees?page=2');
+      await screen.findByText('Showing 26–50 of 60');
+      const goToPage = screen.getByLabelText('Go to page');
+
+      await user.type(goToPage, `${pageNumber}{Enter}`);
+
+      expect(screen.getByRole('alert')).toHaveTextContent('Enter a page from 1 to 3');
+      expect(goToPage).toHaveAttribute('aria-invalid', 'true');
+      expect(goToPage).toHaveAccessibleDescription('Enter a page from 1 to 3');
+      expect(router.state.location.search).toBe('?page=2');
+
+      // The message goes away as soon as the user corrects the number.
+      await user.clear(goToPage);
+      await user.type(goToPage, '1');
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    },
+  );
+
   it('disables "Previous" on the first page and "Next" on the last', async () => {
     useFakeApi(makeEmployees(3));
     renderRoute('/employees');
@@ -60,6 +96,8 @@ describe('Employees page', () => {
     await screen.findByText('Page 1 of 1');
     expect(screen.getByRole('button', { name: 'Previous page' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Next page' })).toBeDisabled();
+    // Nothing to jump to with a single page.
+    expect(screen.queryByLabelText('Go to page')).not.toBeInTheDocument();
   });
 
   it('changes the number of rows per page', async () => {

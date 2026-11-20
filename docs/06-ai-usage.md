@@ -155,4 +155,27 @@ better design:
 Lesson: AI produced a technically valid form, but only using the product as the HR persona revealed that
 the workflow was unworkable. Reviewing AI output as a user, not just as a code reviewer, matters.
 
+### 10. My usability review after testing the app
+
+I used the app as the HR manager and raised four issues the AI had not considered:
+
+> 1. Pagination should be sticky to the bottom — with many rows I have to scroll to the bottom a lot to change page.
+> 2. There should be a "jump to page" option — for lakhs of employees, previous/next isn't enough.
+> 3. Move error/success toasts to the top.
+> 4. There should be bulk upload and bulk delete — upload sheet data in a required format, and checkboxes
+>    to select multiple employees and delete them at once.
+
+| # | My feedback | Outcome |
+|---|-------------|---------|
+| 1 | Sticky pagination | Pagination is now a compact bar stuck to the bottom of the screen |
+| 2 | Jump to page | "Go to page" box. The AI first clamped out-of-range numbers (1111111 → last page); I questioned that while testing, and it now shows *"Enter a page from 1 to 400"* and stays on the current page, so typos are noticed instead of hidden. Its test also exposed that the browser's built-in validation blocked the submit before our code ran — fixed with `noValidate`, consistent with the other forms |
+| 3 | Toasts on top | Toasts moved to the top (top-right on desktop, top-center on phones), clear of the sticky pagination |
+| 3b | Hover state for Edit / Delete (raised during review) | Their hover used the same grey as the row hover, so it was invisible on desktop. Edit now hovers lime (the accent), Delete hovers soft red with a red icon (clearly destructive), and both show a tooltip naming the employee |
+| 4a | Bulk delete | Planned next: checkboxes, "select all on this page", one confirmation for all selected |
+| 4b | Bulk upload | Phase 2 Excel/CSV import (template, row-by-row validation preview, all-or-nothing save) — order agreed after bulk delete |
+
+These came from **using the product, not reading the code** — the same way I caught the employee-code
+problem (section 9). The AI built what was specified; real HR workflows (hundreds of pages, many rows
+to clean up) needed these additions.
+
 > *(more to be added as we build)*

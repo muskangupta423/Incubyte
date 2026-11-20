@@ -78,14 +78,16 @@ export function EmployeeTable({
                   variant="ghost"
                   onClick={() => onEdit(employee)}
                   aria-label={`Edit ${employee.fullName}`}
+                  title={`Edit ${employee.fullName}`}
                 >
                   <EditIcon />
                 </Button>
                 <Button
                   size="sm"
-                  variant="ghost"
+                  variant="ghostDanger"
                   onClick={() => onDelete(employee)}
                   aria-label={`Delete ${employee.fullName}`}
+                  title={`Delete ${employee.fullName}`}
                 >
                   <TrashIcon />
                 </Button>

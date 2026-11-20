@@ -49,10 +49,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/** Top of the screen: where people look first, and clear of the sticky pagination bar at the bottom. */
 const Region = styled.div`
   position: fixed;
+  top: ${({ theme }) => theme.spacing.lg};
   right: ${({ theme }) => theme.spacing.lg};
-  bottom: ${({ theme }) => theme.spacing.lg};
   left: ${({ theme }) => theme.spacing.lg};
   z-index: ${({ theme }) => theme.zIndex.toast};
   display: flex;
