@@ -1,18 +1,17 @@
 import type { Employee, EmployeeInput } from '@acme/shared';
 import { useId } from 'react';
 import { Button } from '../../components/Button';
-import { Dialog } from '../../components/Dialog';
+import { Dialog, type DialogVisibility } from '../../components/Dialog';
 import { useToast } from '../../components/toast/toast-context';
 import { EmployeeForm } from './EmployeeForm';
 import { useCreateEmployee, useUpdateEmployee } from './use-employee-mutations';
 
-interface EmployeeFormDialogProps {
+interface EmployeeFormDialogProps extends DialogVisibility {
   /** The employee to edit, or undefined to add a new one. */
   employee?: Employee | undefined;
-  onClose: () => void;
 }
 
-export function EmployeeFormDialog({ employee, onClose }: EmployeeFormDialogProps) {
+export function EmployeeFormDialog({ employee, open, onClose, onExited }: EmployeeFormDialogProps) {
   const formId = useId();
   const { showToast } = useToast();
   const createEmployee = useCreateEmployee();
@@ -37,7 +36,8 @@ export function EmployeeFormDialog({ employee, onClose }: EmployeeFormDialogProp
 
   return (
     <Dialog
-      open
+      open={open}
+      onExited={onExited}
       title={isEditing ? `Edit ${employee.fullName}` : 'Add employee'}
       onClose={onClose}
       footer={

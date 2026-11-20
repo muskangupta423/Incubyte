@@ -2,7 +2,7 @@ import { useId, useState, type FormEvent } from 'react';
 import styled from 'styled-components';
 import { formatNumber } from '../utils/format';
 import { Button } from './Button';
-import { controlStyles } from './form-controls';
+import { controlStyles, DropdownArrow, dropdownControlStyles } from './form-controls';
 import { ChevronLeftIcon, ChevronRightIcon } from './icons';
 
 interface PaginationProps {
@@ -42,17 +42,19 @@ export function Pagination({
       <Controls>
         <InlineField>
           <label htmlFor={pageSizeId}>Rows per page</label>
-          <CompactSelect
-            id={pageSizeId}
-            value={pageSize}
-            onChange={(event) => onPageSizeChange(Number(event.target.value))}
-          >
-            {pageSizeOptions.map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </CompactSelect>
+          <DropdownArrow>
+            <CompactSelect
+              id={pageSizeId}
+              value={pageSize}
+              onChange={(event) => onPageSizeChange(Number(event.target.value))}
+            >
+              {pageSizeOptions.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </CompactSelect>
+          </DropdownArrow>
         </InlineField>
 
         {lastPage > 1 && <JumpToPage lastPage={lastPage} onPageChange={onPageChange} />}
@@ -190,6 +192,7 @@ const InlineField = styled.div`
 
 const CompactSelect = styled.select`
   ${controlStyles}
+  ${dropdownControlStyles}
   width: auto;
   min-height: ${({ theme }) => theme.layout.controlHeightSmall};
   cursor: pointer;

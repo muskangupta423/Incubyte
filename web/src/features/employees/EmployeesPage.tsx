@@ -43,7 +43,17 @@ type OpenDialog =
 export function EmployeesPage() {
   const { query, searchText, hasFilters, updateQuery, clearFilters } = useEmployeeListParams();
   const [openDialog, setOpenDialog] = useState<OpenDialog>({ kind: 'none' });
-  const closeDialog = () => setOpenDialog({ kind: 'none' });
+  // Closing is two steps: the dialog animates out (open = false), then it is removed (onExited).
+  const [isDialogClosing, setIsDialogClosing] = useState(false);
+  function showDialog(dialog: OpenDialog) {
+    setIsDialogClosing(false);
+    setOpenDialog(dialog);
+  }
+  const dialogVisibility = {
+    open: !isDialogClosing,
+    onClose: () => setIsDialogClosing(true),
+    onExited: () => showDialog({ kind: 'none' }),
+  };
 
   // The URL updates on every keystroke; the request waits until typing pauses.
   const debouncedSearch = useDebouncedValue(query.search, SEARCH_DEBOUNCE_MS);
@@ -64,7 +74,7 @@ export function EmployeesPage() {
         title="Employees"
         description="Search, filter and manage salaries for everyone at ACME."
         actions={
-          <Button variant="primary" onClick={() => setOpenDialog({ kind: 'add' })}>
+          <Button variant="primary" onClick={() => showDialog({ kind: 'add' })}>
             <PlusIcon />
             Add employee
           </Button>
@@ -84,17 +94,17 @@ export function EmployeesPage() {
         onSortChange={changeSort}
         onPageChange={(page) => updateQuery({ page })}
         onPageSizeChange={(pageSize) => updateQuery({ pageSize })}
-        onEdit={(employee) => setOpenDialog({ kind: 'edit', employee })}
-        onDelete={(employee) => setOpenDialog({ kind: 'delete', employee })}
+        onEdit={(employee) => showDialog({ kind: 'edit', employee })}
+        onDelete={(employee) => showDialog({ kind: 'delete', employee })}
       />
 
       <Suspense fallback={null}>
-        {openDialog.kind === 'add' && <EmployeeFormDialog onClose={closeDialog} />}
+        {openDialog.kind === 'add' && <EmployeeFormDialog {...dialogVisibility} />}
         {openDialog.kind === 'edit' && (
-          <EmployeeFormDialog employee={openDialog.employee} onClose={closeDialog} />
+          <EmployeeFormDialog employee={openDialog.employee} {...dialogVisibility} />
         )}
         {openDialog.kind === 'delete' && (
-          <DeleteEmployeeDialog employee={openDialog.employee} onClose={closeDialog} />
+          <DeleteEmployeeDialog employee={openDialog.employee} {...dialogVisibility} />
         )}
       </Suspense>
     </>

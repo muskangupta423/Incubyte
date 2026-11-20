@@ -1,6 +1,12 @@
 import type { ComponentProps } from 'react';
 import styled from 'styled-components';
-import { controlStyles, FieldLabel, useFieldMessages } from './form-controls';
+import {
+  controlStyles,
+  DropdownArrow,
+  dropdownControlStyles,
+  FieldLabel,
+  useFieldMessages,
+} from './form-controls';
 
 export interface SelectOption {
   value: string;
@@ -31,14 +37,16 @@ export function SelectField({
   return (
     <div>
       <FieldLabel htmlFor={controlId}>{label}</FieldLabel>
-      <Select {...selectProps} {...controlProps}>
-        {emptyOptionLabel !== undefined && <option value="">{emptyOptionLabel}</option>}
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </Select>
+      <DropdownArrow>
+        <Select {...selectProps} {...controlProps}>
+          {emptyOptionLabel !== undefined && <option value="">{emptyOptionLabel}</option>}
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
+      </DropdownArrow>
       {messages}
     </div>
   );
@@ -46,5 +54,6 @@ export function SelectField({
 
 const Select = styled.select`
   ${controlStyles}
+  ${dropdownControlStyles}
   cursor: pointer;
 `;

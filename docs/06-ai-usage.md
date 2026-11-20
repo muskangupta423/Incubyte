@@ -157,7 +157,7 @@ the workflow was unworkable. Reviewing AI output as a user, not just as a code r
 
 ### 10. My usability review after testing the app
 
-I used the app as the HR manager and raised issues the AI had not considered (the first four below; 5 and 6 came later, after deploying):
+I used the app as the HR manager and raised issues the AI had not considered (the first four below; 5–9 came later, after deploying):
 
 > 1. Pagination should be sticky to the bottom — with many rows I have to scroll to the bottom a lot to change page.
 > 2. There should be a "jump to page" option — for lakhs of employees, previous/next isn't enough.
@@ -175,6 +175,9 @@ I used the app as the HR manager and raised issues the AI had not considered (th
 | 4b | Bulk upload | Phase 2 Excel/CSV import (template, row-by-row validation preview, all-or-nothing save) — order agreed after bulk delete |
 | 5 | Salary distribution labels overlapping (raised after deploying) | The chart was the only one with vertical bars: 11 range labels ("$100K–$125K") side by side did not fit a half-width card. I suggested a full-screen button per chart; the AI recommended fixing the cause instead — full screen would leave the normal view unreadable. Agreed: the chart now uses horizontal bars like the others (one row per range, label on the left), and the unused vertical layout was removed from the shared chart. Full screen kept as a later option if a chart outgrows its card |
 | 6 | "Median salary" not understandable | The AI had used the statistics term with no explanation. If I had to ask what it meant, an HR manager would too. The screen now leads with plain words and keeps the precise term: **"Typical salary (median)"**, **"Typical pay by country (median, USD)"**, table column **"Typical (median)"**, and takeaways say *"Typical pay is highest in…"*. The card under it still explains *"Half earn more, half earn less"* |
+| 7 | Read-only "Employee code" looked editable | It had the same white box as the other fields, so clicking it felt broken. Read-only fields now look different: grey background, lighter border, no hover change, normal cursor. The style lives in the shared form-control styles, so any future read-only field gets it too |
+| 8 | Sliding animation when a modal opens, and (after trying it) when it closes | Side panels (add / edit) slide in from the right and out again; confirmation boxes rise and fade in, then sink and fade out; the dimmed background fades both ways. Closing waits for the animation before the dialog is removed. Timing comes from new shared `motion` tokens, and people who turn on "reduce motion" in their system settings get no animation |
+| 9 | "Why do Job title and Department look different from the other dropdowns?" | They are different fields on purpose: Country is a fixed list, while Job title / Department are text boxes with suggestions, so HR can add a new role. The browser draws the two kinds differently (the suggestions arrow only appears on hover). The AI offered three options; I chose to keep typing allowed and make them look the same: every dropdown-like field (form, filters, "Rows per page") now shows one shared arrow drawn by the app, and the browser's own arrows are hidden |
 
 These came from **using the product, not reading the code** — the same way I caught the employee-code
 problem (section 9). The AI built what was specified; real HR workflows (hundreds of pages, many rows

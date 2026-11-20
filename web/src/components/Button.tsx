@@ -86,7 +86,7 @@ const StyledButton = styled.button<{ $variant: ButtonVariant; $size: ButtonSize 
   font-weight: ${({ theme }) => theme.fontWeights.medium};
   white-space: nowrap;
   cursor: pointer;
-  transition: background-color 150ms ease;
+  transition: background-color ${({ theme }) => theme.motion.fast} ease;
 
   ${({ $variant }) => variantStyles[$variant]}
 

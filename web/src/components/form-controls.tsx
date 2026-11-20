@@ -1,5 +1,6 @@
-import { useId } from 'react';
+import { useId, type ReactNode } from 'react';
 import styled, { css } from 'styled-components';
+import { ChevronDownIcon } from './icons';
 
 /** Styles shared by text inputs and selects, so all form controls look and size the same. */
 export const controlStyles = css`
@@ -19,6 +20,53 @@ export const controlStyles = css`
 
   &[aria-invalid='true'] {
     border-color: ${({ theme }) => theme.colors.danger};
+  }
+
+  /* Shown but not editable (e.g. the system-assigned employee code): greyed out so it doesn't
+     look like a box to type in. Text keeps full contrast so it stays easy to read and copy. */
+  &[readonly] {
+    border-color: ${({ theme }) => theme.colors.border};
+    background: ${({ theme }) => theme.colors.surfaceMuted};
+    cursor: default;
+  }
+`;
+
+/**
+ * Dropdown-like fields — selects, and text boxes with suggestions (job title, department) — show
+ * the same arrow, drawn by us. Browsers draw their own arrows differently for each kind of field
+ * (and the suggestions arrow only on hover), so theirs are hidden. Use with <DropdownArrow>.
+ */
+export const dropdownControlStyles = css`
+  appearance: none;
+  padding-right: calc(${({ theme }) => theme.spacing.md} + ${({ theme }) => theme.spacing.xl});
+
+  /* Chrome/Edge suggestions arrow: invisible but still clickable, on top of ours. */
+  &::-webkit-calendar-picker-indicator {
+    opacity: 0;
+  }
+`;
+
+/** Wraps a dropdown-like control and draws the shared arrow over its right edge. */
+export function DropdownArrow({ children }: { children: ReactNode }) {
+  return (
+    <ArrowWrapper>
+      {children}
+      <ChevronDownIcon />
+    </ArrowWrapper>
+  );
+}
+
+const ArrowWrapper = styled.div`
+  position: relative;
+
+  > svg {
+    position: absolute;
+    top: 50%;
+    right: ${({ theme }) => theme.spacing.md};
+    transform: translateY(-50%);
+    color: ${({ theme }) => theme.colors.textMuted};
+    /* Clicks go through to the field underneath. */
+    pointer-events: none;
   }
 `;
 

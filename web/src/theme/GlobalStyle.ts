@@ -62,7 +62,7 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
+    *, *::before, *::after, *::backdrop {
       animation-duration: 0.01ms !important;
       transition-duration: 0.01ms !important;
     }

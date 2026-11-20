@@ -5,6 +5,7 @@ import {
   fontWeights,
   layout,
   lightColors,
+  motion,
   radii,
   spacing,
   zIndex,
@@ -29,6 +30,7 @@ export const theme = {
   radii,
   zIndex,
   layout,
+  motion,
   shadows: {
     sm: `0 1px 2px ${colors.shadow}`,
     md: `0 4px 16px ${colors.shadow}`,

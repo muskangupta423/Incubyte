@@ -47,6 +47,14 @@ export function ChevronLeftIcon() {
   );
 }
 
+export function ChevronDownIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
 export function ChevronRightIcon() {
   return (
     <svg {...iconProps}>

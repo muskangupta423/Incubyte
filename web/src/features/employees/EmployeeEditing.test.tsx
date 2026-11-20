@@ -117,7 +117,8 @@ describe('adding an employee', () => {
     // The browser fires "cancel" when Escape is pressed on a modal <dialog>.
     fireEvent(await screen.findByRole('dialog'), new Event('cancel', { cancelable: true }));
 
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    // Closing finishes after the closing animation, so wait for it.
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(addButton).toHaveFocus();
   });
 });

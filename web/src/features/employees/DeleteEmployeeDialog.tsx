@@ -1,18 +1,22 @@
 import type { Employee } from '@acme/shared';
 import styled from 'styled-components';
 import { Button } from '../../components/Button';
-import { Dialog } from '../../components/Dialog';
+import { Dialog, type DialogVisibility } from '../../components/Dialog';
 import { InlineAlert } from '../../components/InlineAlert';
 import { useToast } from '../../components/toast/toast-context';
 import { useDeleteEmployee } from './use-employee-mutations';
 
-interface DeleteEmployeeDialogProps {
+interface DeleteEmployeeDialogProps extends DialogVisibility {
   employee: Employee;
-  onClose: () => void;
 }
 
 /** Deleting is permanent, so it always asks first and names exactly who will be deleted. */
-export function DeleteEmployeeDialog({ employee, onClose }: DeleteEmployeeDialogProps) {
+export function DeleteEmployeeDialog({
+  employee,
+  open,
+  onClose,
+  onExited,
+}: DeleteEmployeeDialogProps) {
   const { showToast } = useToast();
   const deleteEmployee = useDeleteEmployee();
 
@@ -27,7 +31,8 @@ export function DeleteEmployeeDialog({ employee, onClose }: DeleteEmployeeDialog
 
   return (
     <Dialog
-      open
+      open={open}
+      onExited={onExited}
       variant="centered"
       title="Delete employee?"
       onClose={onClose}

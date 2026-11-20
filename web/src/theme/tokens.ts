@@ -131,6 +131,14 @@ export const zIndex = {
   toast: 40,
 };
 
+/** Animation timing. Users who ask their system for reduced motion get none (see GlobalStyle). */
+export const motion = {
+  fast: '150ms',
+  normal: '250ms',
+  /** Starts quickly and settles gently: things arriving on screen feel responsive, not sluggish. */
+  easeOut: 'cubic-bezier(0.2, 0, 0, 1)',
+};
+
 export const layout = {
   contentMaxWidth: '1200px',
   controlHeight: '2.5rem', // 40px — buttons and inputs line up
