@@ -20,17 +20,19 @@ beforeEach(() => {
 });
 
 describe('GET /api/employees/filter-options', () => {
-  it('lists the distinct departments and job titles, A→Z', async () => {
+  it('lists the distinct countries, departments and job titles in use, A→Z', async () => {
     const { app } = await createAppWith([
       employee({ department: 'Sales', job_title: 'Account Executive' }),
-      employee(),
+      employee({ country: 'IN', currency: 'INR' }),
       employee(),
     ]);
 
     const response = await request(app).get('/api/employees/filter-options');
 
     expect(response.status).toBe(200);
+    // Only countries that have employees: the other seeded countries are set up but unused.
     expect(response.body).toEqual({
+      countries: ['IN', 'US'],
       departments: ['Engineering', 'Sales'],
       jobTitles: ['Account Executive', 'Software Engineer'],
     });
@@ -116,12 +118,25 @@ describe('POST /api/employees', () => {
 
     const response = await request(app)
       .post('/api/employees')
-      .send({ ...newHire, fullName: ' ', email: 'not-an-email', annualSalary: -5, country: 'FR' });
+      .send({ ...newHire, fullName: ' ', email: 'not-an-email', annualSalary: -5, country: 'XX' });
 
     expect(response.status).toBe(400);
     expect(
       response.body.error.details.map((detail: { field: string }) => detail.field).sort(),
     ).toEqual(['annualSalary', 'country', 'email', 'fullName']);
+  });
+
+  it('rejects a real country that has not been set up yet', async () => {
+    const { app } = await createAppWith([]);
+
+    const response = await request(app)
+      .post('/api/employees')
+      .send({ ...newHire, country: 'KE' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.details).toEqual([
+      { field: 'country', message: "Kenya isn't set up yet — add it as a new country first" },
+    ]);
   });
 
   it('rejects a duplicate email (in any letter case) with 409', async () => {

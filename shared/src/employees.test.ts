@@ -79,7 +79,7 @@ describe('employeeInputSchema', () => {
     ['fullName', undefined, 'Full name is required'],
     ['fullName', 'x'.repeat(101), 'Full name must be at most 100 characters'],
     ['email', 'asha@', 'Enter a valid email address'],
-    ['country', 'FR', 'Choose a supported country'],
+    ['country', 'XX', 'Choose a country from the list'],
     ['annualSalary', 0, 'Annual salary must be greater than 0'],
     ['annualSalary', 1500.5, 'Annual salary must be a whole number'],
     ['annualSalary', '1800000', 'Annual salary must be a number'],

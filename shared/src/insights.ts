@@ -1,12 +1,13 @@
 import { z } from 'zod';
-import { countryCode, optionalFilter } from './schema-helpers';
+import { countryCodeSchema } from './countries';
+import { optionalFilter } from './schema-helpers';
 
 /**
  * Optional filters accepted by every /api/insights endpoint, so all dashboard numbers
  * always describe the same set of employees.
  */
 export const insightsFilterSchema = z.object({
-  country: optionalFilter(countryCode),
+  country: optionalFilter(countryCodeSchema),
   department: optionalFilter(z.string().trim()),
 });
 

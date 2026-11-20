@@ -1,4 +1,3 @@
-import { COUNTRIES } from '@acme/shared';
 import type { InStatement } from '@libsql/client';
 import type { Database } from '../client';
 import {
@@ -27,7 +26,7 @@ const EMPLOYEE_COLUMNS = [
 ] as const satisfies readonly (keyof SeedEmployee)[];
 
 /**
- * Replaces all employees and exchange rates with the given seed data, and restarts the code counter.
+ * Replaces all employees, countries and exchange rates with the seed data, and restarts the code counter.
  * Runs as ONE batch, which libSQL executes as a single transaction: it either fully succeeds or changes nothing.
  */
 export async function seedDatabase(
@@ -37,9 +36,11 @@ export async function seedDatabase(
   await db.batch(
     [
       'DELETE FROM employees',
+      'DELETE FROM countries',
       'DELETE FROM exchange_rates',
       RESET_EMPLOYEE_CODE_SEQUENCE_SQL,
       ...exchangeRateInserts(),
+      ...countryInserts(),
       ...employeeInserts(employees),
       // New hires continue after the seeded codes.
       SYNC_EMPLOYEE_CODE_SEQUENCE_SQL,
@@ -51,7 +52,14 @@ export async function seedDatabase(
 function exchangeRateInserts(): InStatement[] {
   return SEED_COUNTRIES.map((country) => ({
     sql: 'INSERT INTO exchange_rates (currency, usd_rate, as_of_date) VALUES (?, ?, ?)',
-    args: [COUNTRIES[country.code].currency, country.usdRate, EXCHANGE_RATES_AS_OF],
+    args: [country.currency, country.usdRate, EXCHANGE_RATES_AS_OF],
+  }));
+}
+
+function countryInserts(): InStatement[] {
+  return SEED_COUNTRIES.map((country) => ({
+    sql: 'INSERT INTO countries (code, currency) VALUES (?, ?)',
+    args: [country.code, country.currency],
   }));
 }
 

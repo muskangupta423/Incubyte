@@ -1,5 +1,4 @@
 import {
-  COUNTRIES,
   type BulkDeleteResult,
   type Employee,
   type EmployeeFilterOptions,
@@ -9,6 +8,7 @@ import {
 } from '@acme/shared';
 import type { Database } from '../../db/client';
 import { ConflictError, NotFoundError } from '../../http/errors';
+import { requireCountryCurrency } from '../countries/country-service';
 import {
   deleteEmployee as deleteEmployeeRow,
   deleteEmployees as deleteEmployeeRows,
@@ -44,7 +44,8 @@ export async function getEmployee(db: Database, id: number): Promise<Employee> {
 }
 
 export async function createEmployee(db: Database, input: EmployeeInput): Promise<Employee> {
-  return withConflictCheck(() => insertEmployee(db, toRecord(input)));
+  const record = await toRecord(db, input);
+  return withConflictCheck(() => insertEmployee(db, record));
 }
 
 export async function updateEmployee(
@@ -52,7 +53,8 @@ export async function updateEmployee(
   id: number,
   input: EmployeeInput,
 ): Promise<Employee> {
-  const updated = await withConflictCheck(() => updateEmployeeRow(db, id, toRecord(input)));
+  const record = await toRecord(db, input);
+  const updated = await withConflictCheck(() => updateEmployeeRow(db, id, record));
   return updated ?? throwNotFound(id);
 }
 
@@ -72,9 +74,9 @@ export async function deleteEmployees(
   return { deletedCount: await deleteEmployeeRows(db, ids) };
 }
 
-/** Business rule: an employee is always paid in their country's currency. */
-function toRecord(input: EmployeeInput): EmployeeRecord {
-  return { ...input, currency: COUNTRIES[input.country].currency };
+/** Business rule: an employee is always paid in their (set-up) country's currency. */
+async function toRecord(db: Database, input: EmployeeInput): Promise<EmployeeRecord> {
+  return { ...input, currency: await requireCountryCurrency(db, input.country) };
 }
 
 const DUPLICATE_MESSAGES: Record<DuplicateValueError['field'], string> = {

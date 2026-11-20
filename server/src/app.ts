@@ -1,5 +1,6 @@
 import express from 'express';
 import type { Database } from './db/client';
+import { createCountryRouter } from './features/countries/country-routes';
 import { createEmployeeRouter } from './features/employees/employee-routes';
 import { createInsightsRouter } from './features/insights/insights-routes';
 import { errorHandler, notFoundHandler } from './http/error-handler';
@@ -20,6 +21,7 @@ export function createApp({ db }: AppDependencies) {
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });
   });
+  app.use('/api/countries', createCountryRouter(db));
   app.use('/api/employees', createEmployeeRouter(db));
   app.use('/api/insights', createInsightsRouter(db));
 

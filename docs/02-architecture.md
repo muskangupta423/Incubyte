@@ -85,6 +85,8 @@ Each layer only talks to the one below it. This keeps business logic **easy to u
 
 ```mermaid
 erDiagram
+    EMPLOYEES }o--|| COUNTRIES : "works in"
+    COUNTRIES }o--|| EXCHANGE_RATES : "pays in currency"
     EMPLOYEES }o--|| EXCHANGE_RATES : "paid in currency"
     EMPLOYEES ||--o{ SALARY_COMPONENTS : "broken down into (Phase 2)"
     SEQUENCES {
@@ -105,6 +107,10 @@ erDiagram
         text created_at
         text updated_at
     }
+    COUNTRIES {
+        text code PK "ISO code, e.g. KE"
+        text currency FK "e.g. KES"
+    }
     EXCHANGE_RATES {
         text currency PK "e.g. INR"
         real usd_rate "1 unit = X USD"
@@ -119,6 +125,9 @@ erDiagram
     }
 ```
 
+- **Countries** are data, not code: the seed sets up 8, HR adds more in the app. Only the code and currency are
+  stored; names come from the built-in `Intl.DisplayNames`. Saving an employee checks the country is set up and
+  copies its currency. Databases from before this table are backfilled from their employees on start-up.
 - **Salary components (Phase 2)** are optional. If an employee has any, they must add up exactly to `annual_salary`.
   Only earnings are stored; deductions such as PF and TDS are out of scope.
 
@@ -149,7 +158,9 @@ erDiagram
 | GET | `/api/insights/by-job-title` | Stats per job title — across all countries, or in one with `?country=` |
 | GET | `/api/insights/by-department` | Headcount, payroll and stats per department |
 | GET | `/api/insights/distribution` | Headcount per $25k USD band (11 bands, last one is 250k+), empty bands included |
-| GET | `/api/employees/filter-options` | Distinct departments and job titles (for dropdowns). Countries come from `shared/` |
+| GET | `/api/employees/filter-options` | Distinct countries (codes), departments and job titles that have employees (for filter dropdowns) |
+| GET | `/api/countries` | Countries that are set up, A→Z, with their currency (for the Add employee form) |
+| POST | `/api/countries` | Set up a country: `{ "code": "KE", "usdRate": 0.0077 }`; the rate is required only if no country uses that currency yet; 409 if already set up |
 | **Phase 2** | | |
 | GET | `/api/employees/import/template?format=xlsx\|csv` | Download an empty template with the right columns |
 | POST | `/api/employees/import?dryRun=true` | Upload a file → validate only, return preview (rows to add / update) and row-level errors |

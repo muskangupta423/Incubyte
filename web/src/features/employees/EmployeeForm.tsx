@@ -1,27 +1,25 @@
 import {
-  COUNTRIES,
-  COUNTRY_CODES,
   countryName,
   employeeInputSchema,
-  isCountryCode,
   type Employee,
   type EmployeeInput,
   type EmployeeInputDraft,
 } from '@acme/shared';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useId, useState } from 'react';
-import { useForm, useWatch, type DefaultValues, type UseFormSetError } from 'react-hook-form';
+import { useController, useForm, type DefaultValues, type UseFormSetError } from 'react-hook-form';
 import styled from 'styled-components';
+import { useDialog } from '../../components/Dialog';
 import { InlineAlert } from '../../components/InlineAlert';
 import { SelectField } from '../../components/SelectField';
 import { TextField } from '../../components/TextField';
 import { ApiError } from '../../services/http-client';
+import { AddCountryDialog } from '../countries/AddCountryDialog';
+import { useCountries } from '../countries/use-countries';
 import { useFilterOptions } from './use-employee-queries';
 
-const COUNTRY_OPTIONS = COUNTRY_CODES.map((code) => ({
-  value: code,
-  label: countryName(code),
-})).sort((a, b) => a.label.localeCompare(b.label));
+/** The last option of the Country dropdown; choosing it opens "Add a country" instead of selecting. */
+const ADD_COUNTRY = '__add-country__';
 
 const EMPTY_FORM: DefaultValues<EmployeeInputDraft> = {
   fullName: '',
@@ -48,6 +46,8 @@ interface EmployeeFormProps {
  */
 export function EmployeeForm({ formId, employee, onSubmit, onSaved }: EmployeeFormProps) {
   const { data: filterOptions } = useFilterOptions();
+  const { data: countries = [] } = useCountries();
+  const addCountryDialog = useDialog();
   const [formError, setFormError] = useState<string | null>(null);
   const jobTitleListId = useId();
   const departmentListId = useId();
@@ -57,15 +57,22 @@ export function EmployeeForm({ formId, employee, onSubmit, onSaved }: EmployeeFo
     handleSubmit,
     setError,
     control,
-    formState: { errors },
+    formState: { errors, isSubmitted },
   } = useForm<EmployeeInputDraft, unknown, EmployeeInput>({
     resolver: zodResolver(employeeInputSchema),
     defaultValues: employee ? toFormValues(employee) : EMPTY_FORM,
   });
 
+  // Controlled (not register) because one option opens a dialog instead of being selected.
+  const { field: countryField } = useController({ control, name: 'country' });
+  const chooseCountry = (code: string) =>
+    countryField.onChange(code, { shouldValidate: isSubmitted });
   // Show the currency as soon as a country is picked (the API derives it the same way).
-  const countryCode = useWatch({ control, name: 'country' }).toUpperCase();
-  const currency = isCountryCode(countryCode) ? COUNTRIES[countryCode].currency : undefined;
+  const currency = countries.find((country) => country.code === countryField.value)?.currency;
+  const countryOptions = [
+    ...countries.map((country) => ({ value: country.code, label: countryName(country.code) })),
+    { value: ADD_COUNTRY, label: '+ Add another country' },
+  ];
 
   const submit = handleSubmit(async (input) => {
     setFormError(null);
@@ -81,86 +88,102 @@ export function EmployeeForm({ formId, employee, onSubmit, onSaved }: EmployeeFo
   });
 
   return (
-    <form id={formId} onSubmit={(event) => void submit(event)} noValidate>
-      {formError && <InlineAlert>{formError}</InlineAlert>}
+    <>
+      <form id={formId} onSubmit={(event) => void submit(event)} noValidate>
+        {formError && <InlineAlert>{formError}</InlineAlert>}
 
-      <Grid>
-        <Wide>
+        <Grid>
+          <Wide>
+            <TextField
+              label="Full name"
+              autoComplete="off"
+              error={errors.fullName?.message}
+              {...register('fullName')}
+            />
+          </Wide>
+          <Wide>
+            <TextField
+              label="Email"
+              type="email"
+              autoComplete="off"
+              error={errors.email?.message}
+              {...register('email')}
+            />
+          </Wide>
+          {/* Assigned by the system and never changed, so it is shown but not editable. */}
           <TextField
-            label="Full name"
-            autoComplete="off"
-            error={errors.fullName?.message}
-            {...register('fullName')}
+            label="Employee code"
+            readOnly
+            value={employee?.employeeCode ?? ''}
+            placeholder="Assigned automatically"
+            hint={
+              employee ? "Codes can't be changed" : 'The next free code is assigned when you save'
+            }
           />
-        </Wide>
-        <Wide>
           <TextField
-            label="Email"
-            type="email"
-            autoComplete="off"
-            error={errors.email?.message}
-            {...register('email')}
+            label="Hire date"
+            type="date"
+            error={errors.hireDate?.message}
+            {...register('hireDate')}
           />
-        </Wide>
-        {/* Assigned by the system and never changed, so it is shown but not editable. */}
-        <TextField
-          label="Employee code"
-          readOnly
-          value={employee?.employeeCode ?? ''}
-          placeholder="Assigned automatically"
-          hint={
-            employee ? "Codes can't be changed" : 'The next free code is assigned when you save'
-          }
-        />
-        <TextField
-          label="Hire date"
-          type="date"
-          error={errors.hireDate?.message}
-          {...register('hireDate')}
-        />
-        <TextField
-          label="Job title"
-          list={jobTitleListId}
-          error={errors.jobTitle?.message}
-          {...register('jobTitle')}
-        />
-        <TextField
-          label="Department"
-          list={departmentListId}
-          error={errors.department?.message}
-          {...register('department')}
-        />
-        <SelectField
-          label="Country"
-          emptyOptionLabel="Choose a country"
-          options={COUNTRY_OPTIONS}
-          hint={currency ? `Paid in ${currency}` : 'The currency is set from the country'}
-          error={errors.country?.message}
-          {...register('country')}
-        />
-        <TextField
-          label={currency ? `Annual salary (${currency})` : 'Annual salary'}
-          type="number"
-          inputMode="numeric"
-          min={1}
-          step={1}
-          error={errors.annualSalary?.message}
-          {...register('annualSalary', { valueAsNumber: true })}
-        />
-      </Grid>
+          <TextField
+            label="Job title"
+            list={jobTitleListId}
+            error={errors.jobTitle?.message}
+            {...register('jobTitle')}
+          />
+          <TextField
+            label="Department"
+            list={departmentListId}
+            error={errors.department?.message}
+            {...register('department')}
+          />
+          <SelectField
+            label="Country"
+            emptyOptionLabel="Choose a country"
+            options={countryOptions}
+            hint={currency ? `Paid in ${currency}` : 'The currency is set from the country'}
+            error={errors.country?.message}
+            {...countryField}
+            onChange={(event) => {
+              if (event.target.value === ADD_COUNTRY) addCountryDialog.show();
+              else chooseCountry(event.target.value);
+            }}
+          />
+          <TextField
+            label={currency ? `Annual salary (${currency})` : 'Annual salary'}
+            type="number"
+            inputMode="numeric"
+            min={1}
+            step={1}
+            error={errors.annualSalary?.message}
+            {...register('annualSalary', { valueAsNumber: true })}
+          />
+        </Grid>
 
-      {/* Suggestions from existing data; new values are still allowed. */}
-      <datalist id={jobTitleListId}>
-        {filterOptions?.jobTitles.map((title) => (
-          <option key={title} value={title} />
-        ))}
-      </datalist>
-      <datalist id={departmentListId}>
-        {filterOptions?.departments.map((department) => (
-          <option key={department} value={department} />
-        ))}
-      </datalist>
-    </form>
+        {/* Suggestions from existing data; new values are still allowed. */}
+        <datalist id={jobTitleListId}>
+          {filterOptions?.jobTitles.map((title) => (
+            <option key={title} value={title} />
+          ))}
+        </datalist>
+        <datalist id={departmentListId}>
+          {filterOptions?.departments.map((department) => (
+            <option key={department} value={department} />
+          ))}
+        </datalist>
+      </form>
+
+      {/* Outside the <form>: the dialog has a form of its own, and forms can't be nested. */}
+      {addCountryDialog.isShown && (
+        <AddCountryDialog
+          {...addCountryDialog.visibility}
+          existing={countries}
+          // The new country is selected straight away: it was added for this employee.
+          onAdded={(country) => chooseCountry(country.code)}
+        />
+      )}
+    </>
   );
 }
 

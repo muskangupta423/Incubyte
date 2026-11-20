@@ -90,17 +90,25 @@ export async function findEmployeePage(
   };
 }
 
-/** Distinct departments and job titles, A→Z. Both columns are indexed, so this reads the indexes only. */
+/**
+ * Values that appear in the data, for the filter dropdowns: countries (codes) that have employees,
+ * departments and job titles, A→Z. All three columns are indexed, so this reads the indexes only.
+ */
 export async function findFilterOptions(db: Database): Promise<EmployeeFilterOptions> {
-  const [departments, jobTitles] = await db.batch(
+  const [countries, departments, jobTitles] = await db.batch(
     [
+      'SELECT DISTINCT country AS value FROM employees ORDER BY value',
       'SELECT DISTINCT department AS value FROM employees ORDER BY value',
       'SELECT DISTINCT job_title AS value FROM employees ORDER BY value',
     ],
     'read',
   );
   const values = (rows: Row[] = []) => rows.map((row) => String(row.value));
-  return { departments: values(departments?.rows), jobTitles: values(jobTitles?.rows) };
+  return {
+    countries: values(countries?.rows),
+    departments: values(departments?.rows),
+    jobTitles: values(jobTitles?.rows),
+  };
 }
 
 export async function findEmployeeById(db: Database, id: number): Promise<Employee | null> {

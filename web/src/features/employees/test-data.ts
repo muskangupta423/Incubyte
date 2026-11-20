@@ -1,7 +1,8 @@
 import {
+  addCountrySchema,
   bulkDeleteEmployeesSchema,
-  COUNTRIES,
-  isCountryCode,
+  currencyOf,
+  type Country,
   type Employee,
   type EmployeeFilterOptions,
   type EmployeeInput,
@@ -38,10 +39,13 @@ export function makeEmployees(count: number): Employee[] {
   );
 }
 
-const filterOptions: EmployeeFilterOptions = {
+const filterOptions: Omit<EmployeeFilterOptions, 'countries'> = {
   departments: ['Engineering', 'Sales'],
   jobTitles: ['Account Executive', 'Software Engineer'],
 };
+
+/** Set up in every fake: the same 8 countries the real seed sets up. */
+const SEED_COUNTRY_CODES = ['AU', 'BR', 'CA', 'DE', 'IN', 'SG', 'GB', 'US'];
 
 /**
  * A small in-memory fake of the employees API: lists (with search, country and paging, like the
@@ -52,16 +56,47 @@ export function employeeApiHandlers(initialEmployees: Employee[]) {
   const requests: URLSearchParams[] = [];
   const changes: { method: string; id?: number; ids?: number[]; body?: EmployeeInput }[] = [];
 
+  let countries: Country[] = SEED_COUNTRY_CODES.map((code) => ({
+    code,
+    currency: currencyOf(code) ?? 'USD',
+  }));
+
   const toEmployee = (id: number, employeeCode: string, input: EmployeeInput): Employee => ({
     ...input,
     id,
     employeeCode,
-    currency: isCountryCode(input.country) ? COUNTRIES[input.country].currency : 'USD',
+    currency: countries.find((country) => country.code === input.country)?.currency ?? 'USD',
     annualSalaryUsd: input.annualSalary,
   });
 
   const handlers = [
-    http.get('*/api/employees/filter-options', () => HttpResponse.json(filterOptions)),
+    http.get('*/api/employees/filter-options', () =>
+      HttpResponse.json({
+        ...filterOptions,
+        // Like the API: only countries that have employees.
+        countries: [...new Set(employees.map((employee) => employee.country))],
+      } satisfies EmployeeFilterOptions),
+    ),
+    http.get('*/api/countries', () => HttpResponse.json(countries)),
+    http.post('*/api/countries', async ({ request }) => {
+      const { code, usdRate } = addCountrySchema.parse(await request.json());
+      const currency = currencyOf(code) ?? 'USD';
+      if (!countries.some((country) => country.currency === currency) && usdRate === undefined) {
+        const message = `Enter how many US dollars 1 ${currency} is worth`;
+        return HttpResponse.json(
+          {
+            error: {
+              message: 'Some of the values you sent are not valid.',
+              details: [{ field: 'usdRate', message }],
+            },
+          },
+          { status: 400 },
+        );
+      }
+      const country = { code, currency };
+      countries = [...countries, country];
+      return HttpResponse.json(country, { status: 201 });
+    }),
     http.get('*/api/employees', ({ request }) => {
       const params = new URL(request.url).searchParams;
       requests.push(params);

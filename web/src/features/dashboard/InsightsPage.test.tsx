@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { renderRoute } from '../../test/render';
 import { setScreenSize } from '../../test/screen-size';
 import { server } from '../../test/server';
-import { employeeApiHandlers } from '../employees/test-data';
+import { employeeApiHandlers, makeEmployee } from '../employees/test-data';
 import { insightsApiHandlers } from './test-data';
 
 function useFakeApi() {
@@ -14,8 +14,13 @@ function useFakeApi() {
 }
 
 beforeEach(() => {
-  // Department filter options come from the employees API.
-  server.use(...employeeApiHandlers([]).handlers);
+  // Country and department filter options come from the employees API (countries with employees).
+  server.use(
+    ...employeeApiHandlers([
+      makeEmployee({ id: 1, country: 'IN' }),
+      makeEmployee({ id: 2, country: 'US', currency: 'USD' }),
+    ]).handlers,
+  );
 });
 
 /** The value shown under a stat card's label (cards are <dt>/<dd> pairs, roles "term"/"definition"). */

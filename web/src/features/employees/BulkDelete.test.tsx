@@ -133,7 +133,10 @@ describe('bulk delete', () => {
   });
 
   it('keeps ticks when sorting or filtering', async () => {
-    useFakeApi(team());
+    useFakeApi([
+      ...team(),
+      makeEmployee({ id: 4, fullName: 'Dan Lee', country: 'US', currency: 'USD' }),
+    ]);
     const { user } = renderRoute('/employees');
     await user.click(await screen.findByRole('checkbox', { name: 'Select Ben Ito' }));
 
@@ -142,10 +145,9 @@ describe('bulk delete', () => {
     );
     await user.selectOptions(screen.getByLabelText('Country'), 'United States');
 
-    expect(await screen.findByText('No employees match these filters')).toBeInTheDocument();
-    expect(selectionBar()).not.toBeInTheDocument(); // no list on screen, so no bar…
+    await waitFor(() => expect(rows()).toHaveLength(1)); // only Dan
+    expect(selectionBar()).toHaveTextContent('1 selected · 0 on this page');
     await user.selectOptions(screen.getByLabelText('Country'), 'India');
-    // …but the tick is still there when the list comes back.
     expect(await screen.findByRole('checkbox', { name: 'Select Ben Ito' })).toBeChecked();
   });
 

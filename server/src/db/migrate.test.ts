@@ -38,6 +38,16 @@ describe('database schema', () => {
     );
   });
 
+  it('sets up every country existing employees work in (databases from before the countries table)', async () => {
+    await insertEmployee(db);
+    await db.execute('DELETE FROM countries');
+
+    await migrate(db);
+
+    const countries = await db.execute('SELECT code, currency FROM countries');
+    expect(countries.rows.map((row) => ({ ...row }))).toEqual([{ code: 'IN', currency: 'INR' }]);
+  });
+
   it('can be applied again without errors or data loss', async () => {
     await insertEmployee(db);
 

@@ -1,4 +1,4 @@
-import { COUNTRIES, COUNTRY_CODES } from '@acme/shared';
+import { currencyOf } from '@acme/shared';
 import { describe, expect, it } from 'vitest';
 import { formatEmployeeCode } from '../employee-code';
 import { generateEmployees, localSalaryRange, SALARY_ROUNDING } from './generate-employees';
@@ -43,7 +43,7 @@ describe('generateEmployees', () => {
         throw new Error(`Unknown country or role on ${employee.employee_code}`);
 
       const range = localSalaryRange(role, country);
-      expect(employee.currency).toBe(COUNTRIES[country.code].currency);
+      expect(employee.currency).toBe(country.currency);
       expect(employee.department).toBe(role.department);
       expect(employee.annual_salary % SALARY_ROUNDING).toBe(0);
       expect(employee.annual_salary).toBeGreaterThanOrEqual(range.min - SALARY_ROUNDING);
@@ -51,11 +51,17 @@ describe('generateEmployees', () => {
     }
   });
 
-  it('includes every supported country and every role', () => {
+  it('uses the real currency of every seed country', () => {
+    for (const country of SEED_COUNTRIES) {
+      expect(country.currency).toBe(currencyOf(country.code));
+    }
+  });
+
+  it('includes every seed country and every role', () => {
     const countries = new Set(employees.map((employee) => employee.country));
     const jobTitles = new Set(employees.map((employee) => employee.job_title));
 
-    expect([...countries].sort()).toEqual([...COUNTRY_CODES].sort());
+    expect([...countries].sort()).toEqual(SEED_COUNTRIES.map((country) => country.code).sort());
     expect(jobTitles.size).toBe(SEED_ROLES.length);
   });
 

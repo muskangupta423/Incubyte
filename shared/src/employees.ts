@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { countryCode, optionalFilter } from './schema-helpers';
+import { countryCodeSchema } from './countries';
+import { optionalFilter } from './schema-helpers';
 
 /** An employee as returned by the API. Salaries are whole units of the employee's local currency. */
 export interface Employee {
@@ -19,6 +20,8 @@ export interface Employee {
 
 /** Values that currently exist in the data, for filter dropdowns. */
 export interface EmployeeFilterOptions {
+  /** Codes of countries that have at least one employee (not every country that is set up). */
+  countries: string[];
   departments: string[];
   jobTitles: string[];
 }
@@ -45,7 +48,7 @@ export const employeeListQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(MAX_PAGE_SIZE).default(DEFAULT_PAGE_SIZE),
   search: optionalFilter(z.string().trim().max(MAX_SEARCH_LENGTH)),
-  country: optionalFilter(countryCode),
+  country: optionalFilter(countryCodeSchema),
   department: optionalFilter(z.string().trim()),
   jobTitle: optionalFilter(z.string().trim()),
   sortBy: z.enum(EMPLOYEE_SORT_FIELDS).default('fullName'),
@@ -79,7 +82,7 @@ export const employeeInputSchema = z.object({
     .pipe(z.email('Enter a valid email address')),
   jobTitle: requiredText('Job title'),
   department: requiredText('Department'),
-  country: countryCode,
+  country: countryCodeSchema,
   annualSalary: z
     .number('Annual salary must be a number')
     .int('Annual salary must be a whole number')

@@ -25,7 +25,8 @@ and answer common pay questions without building a pivot table.
 | # | Feature | Why it matters to the HR Manager |
 |---|---------|----------------------------------|
 | F1 | **Employee list** with search (name / email / employee code), filters (country, department, job title) and sorting (name, salary, hire date) | Replaces scrolling through Excel; must stay fast with 10,000 rows |
-| F2 | **Add / edit / delete employee** (also **delete several at once**: tick rows, one confirmation), with validation (required fields, valid email, salary > 0, supported country). The **employee code is assigned automatically** (next number in the EMP-xxxxx series, never reused) and the **currency is set from the country** — HR never has to guess free codes. Email must be unique. | Keeps data clean; no more typos in cells |
+| F2 | **Add / edit / delete employee** (also **delete several at once**: tick rows, one confirmation), with validation (required fields, valid email, salary > 0, a country that is set up). The **employee code is assigned automatically** (next number in the EMP-xxxxx series, never reused) and the **currency is set from the country** — HR never has to guess free codes. Email must be unique. | Keeps data clean; no more typos in cells |
+| F2b | **Add a country** from the Add employee form: pick any country from a built-in world list (its currency is filled in) and, only if that currency is new, enter its exchange rate to USD. Country filters list only countries that have employees. | ACME works in many countries and will expand; HR shouldn't need a developer to hire in a new one. |
 | F3 | **Salaries stored in local currency**, also shown in **USD** using a fixed exchange-rate table | Employees are paid in many currencies; comparison needs one common unit |
 | F4 | **Insights dashboard**: headcount, total payroll, average & median salary (in USD) | Quick picture of the whole org |
 | F5 | **Pay by country**: headcount, min / median / average / max per country | "How do we pay people in each country?" |
@@ -59,7 +60,8 @@ Built after Phase 1 (F1–F8) is working and deployed, so a usable product exist
 ## 5. Assumptions
 
 - Salary = **annual gross salary (CTC)**, stored in the employee's **local currency**. All insights use this number; the optional breakdown (F12) is for record only.
-- Each country has one currency (e.g. India → INR, USA → USD).
+- Each country has one currency (e.g. India → INR, USA → USD), taken from a built-in world list.
+- A new country's exchange rate is entered once by HR when it is added; existing rates are never changed by adding a country.
 - Exchange rates are a **fixed snapshot** stored in the database, with the date shown in the UI.
 - Data volume: ~10,000 employees; a single SQLite database is more than enough.
 

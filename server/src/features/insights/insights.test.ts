@@ -75,8 +75,8 @@ describe('GET /api/insights/summary', () => {
     expect(response.body).toEqual({ stats: null, exchangeRatesAsOf: '2026-11-01' });
   });
 
-  it('rejects an unsupported country filter', async () => {
-    const response = await request(await appWithTeam()).get('/api/insights/summary?country=FR');
+  it('rejects a country code that does not exist', async () => {
+    const response = await request(await appWithTeam()).get('/api/insights/summary?country=XX');
 
     expect(response.status).toBe(400);
     expect(response.body.error.details[0].field).toBe('country');

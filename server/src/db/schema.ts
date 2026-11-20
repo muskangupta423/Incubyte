@@ -28,6 +28,13 @@ export const SCHEMA_STATEMENTS = [
     updated_at    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
   ) STRICT`,
 
+  // Countries ACME employs people in (added from the app). Names come from Intl, so only the code
+  // and the currency are stored. An employee's country is checked against this table when saved.
+  `CREATE TABLE IF NOT EXISTS countries (
+    code     TEXT PRIMARY KEY CHECK (length(code) = 2),
+    currency TEXT NOT NULL REFERENCES exchange_rates (currency)
+  ) STRICT`,
+
   // Counters that only go up (e.g. the number in the next employee code). See employee-code.ts.
   `CREATE TABLE IF NOT EXISTS sequences (
     name       TEXT PRIMARY KEY,

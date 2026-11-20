@@ -74,7 +74,10 @@ describe('adding an employee', () => {
     expect(within(dialog).getByLabelText('Email')).toHaveAccessibleDescription(
       'Enter a valid email address',
     );
-    expect(within(dialog).getByText('Choose a supported country')).toBeInTheDocument();
+    // The hint and the error are both read out with the field.
+    expect(within(dialog).getByLabelText('Country')).toHaveAccessibleDescription(
+      'The currency is set from the country Choose a country',
+    );
     expect(api.changes).toEqual([]);
   });
 
